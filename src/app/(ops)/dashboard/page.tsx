@@ -60,32 +60,32 @@ export default function DashboardPage() {
     .slice(0, 5);
 
   return (
-    <section className="h-full min-h-0">
-      <div className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4">
+    <section className="h-full min-h-0 overflow-y-auto lg:overflow-hidden pr-1">
+      <div className="flex flex-col lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4">
         <PageContext
-          breadcrumb={["Internal Hub", "Dashboard"]}
-          chipLabel="Dashboard Screens"
-          chips={[
-            { label: "Overview", active: true },
-            { label: "Delivery" },
-            { label: "Revenue" },
-            { label: "Team" },
-          ]}
-          rightChips={[
-            { label: "Checklist", active: true },
-            { label: "Board View" },
-            { label: "Internal Hub" },
-          ]}
+          breadcrumb={[]}
+        // chipLabel="Dashboard Screens"
+        // chips={[
+        //   { label: "Overview", active: true },
+        //   { label: "Delivery" },
+        //   { label: "Revenue" },
+        //   { label: "Team" },
+        // ]}
+        // rightChips={[
+        //   { label: "Checklist", active: true },
+        //   { label: "Board View" },
+        //   { label: "Internal Hub" },
+        // ]}
         />
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Decision Dashboard</h1>
-            <p className="text-sm text-slate-500">What needs attention right now across delivery and revenue.</p>
+            <h1 className="text-2xl font-semibold text-slate-900 -mt-4"> Dashboard</h1>
+            {/* <p className="text-sm text-slate-500">What needs attention right now across delivery and revenue.</p> */}
           </div>
-          <Button variant="subtle" className="gap-1">
+          {/* <Button variant="subtle" className="gap-1">
             Weekly digest
             <ArrowUpRight className="h-4 w-4" />
-          </Button>
+          </Button> */}
         </div>
 
         <div className="space-y-3">
@@ -100,8 +100,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="grid min-h-0 grid-cols-12 grid-rows-2 gap-4">
-          <Card className="col-span-7 min-h-0">
+        <div className="grid min-h-0 grid-cols-1 lg:grid-cols-12 lg:grid-rows-2 gap-4">
+          <Card className="col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Revenue Trend + Forecast</CardTitle>
               <Badge label={`Forecast ${formatCurrency(insights.forecastRevenue)}`} tone="info" />
@@ -132,7 +132,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-5 min-h-0">
+          <Card className="col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Team Capacity Risk</CardTitle>
               <Badge label={`${insights.overloadedUsers.length} overloaded`} tone={insights.overloadedUsers.length ? "danger" : "success"} />
@@ -157,7 +157,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-7 min-h-0 flex flex-col">
+          <Card className="col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Alerts & Recommended Actions</CardTitle>
               <Badge label={`${insights.atRiskProjects.length} projects at risk`} tone={insights.atRiskProjects.length ? "warning" : "success"} />
@@ -195,7 +195,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-5 min-h-0 flex flex-col">
+          <Card className="col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 flex flex-col">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Tasks Due</CardTitle>
               <Link href="/tasks?filter=due" className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">
