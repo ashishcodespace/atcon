@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { AlertTriangle, CalendarDays, ChevronDown, Filter, KanbanSquare, LayoutList, Plus, Search, Sparkles, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, CalendarDays, ChevronDown, Filter, KanbanSquare, LayoutList, Plus, Search, Sparkles, X } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
 import { PageContext } from "@/components/shared/page-context";
@@ -417,11 +417,11 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
                 <thead className="bg-slate-50/50 border-b border-slate-100">
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Project</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Timeline</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Delivery</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Budget Health</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Team Load</th>
-                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-right">Action</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-left">Timeline</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-left">Delivery</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-left">Budget Health</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-left">Team Load</th>
+                    <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400 text-left lg:text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100/50">
@@ -435,8 +435,8 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
                     filteredProjects.map((project) => (
                       <tr key={project.id} className="group hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
-                          <p className="font-semibold text-slate-900 tracking-tight">{project.name}</p>
-                          <p className="text-sm text-slate-400 mt-0.5 font-medium">{project.clientName}</p>
+                          <p className="font-semibold text-slate-800 tracking-tight">{project.name}</p>
+                          <p className="text-sm text-slate-400 mt-0.5 font-medium leading-none">{project.clientName}</p>
                           <div className="mt-2.5 flex items-center gap-1.5">
                             <Badge
                               label={statusLabelMap[project.status]}
@@ -455,7 +455,8 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
                           <p className="text-sm text-slate-700 font-medium">
                             {formatDate(project.startDate)} - {formatDate(project.endDate)}
                           </p>
-                          <p className={clsx("text-sm mt-1 font-medium", project.daysLeft < 0 ? "text-rose-500" : "text-slate-400")}>
+                          <p className={clsx("text-sm mt-1 font-medium flex items-center gap-1", project.daysLeft < 0 ? "text-rose-900" : "text-slate-400")}>
+                            {project.daysLeft < 0 && <AlertCircle className="h-3 w-3" aria-hidden="true" />}
                             {project.daysLeft < 0 ? `${Math.abs(project.daysLeft)}d overdue` : `${project.daysLeft}d remaining`}
                           </p>
                         </td>
@@ -469,9 +470,14 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-base font-bold text-slate-900">{formatCurrency(project.estimatedSpend)}</p>
-                          <p className="text-xs text-slate-400 mt-1">
-                            <span className="font-medium text-slate-500">{formatCurrency(project.budget)}</span> total · <span className="text-emerald-600 font-semibold">{project.burnRate}%</span> burn
+                          <p className="text-base font-bold text-slate-800">{formatCurrency(project.estimatedSpend)}</p>
+                          <p className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 leading-none">
+                            <span className="font-medium text-slate-500">{formatCurrency(project.budget)}</span>
+                            <span>·</span>
+                            <span className={clsx("font-bold flex items-center gap-1", project.burnRate > 80 ? "text-rose-950" : "text-emerald-950")}>
+                              {project.burnRate > 80 && <AlertTriangle className="h-3 w-3" aria-hidden="true" />}
+                              {project.burnRate}% burn
+                            </span>
                           </p>
                         </td>
                         <td className="px-6 py-4 text-sm">
@@ -480,7 +486,7 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
                             <span className="text-slate-600 font-medium">{project.openCount}</span> open · <span className="text-slate-300">{project.blockedCount} blocked</span>
                           </p>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-left lg:text-right">
                           <Link href={`/clients/${project.clientId}`} className="inline-flex items-center justify-center h-8 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all">
                             Open Dashboard
                           </Link>

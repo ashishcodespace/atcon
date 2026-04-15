@@ -19,7 +19,7 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
     <button
       className={clsx(
         "inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/10",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-40",
         variantClasses[variant],
         className,

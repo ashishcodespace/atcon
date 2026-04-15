@@ -54,24 +54,8 @@ export default function ReportsPage() {
 
   return (
     <section className="space-y-4">
-      <PageContext
-        breadcrumb={["Internal Hub", "Reports"]}
-        chipLabel="Reports Screens"
-        chips={[
-          { label: "RP-01 Overview", active: true },
-          { label: "RP-02 Profitability" },
-          { label: "RP-03 Utilization" },
-          { label: "RP-04 Forecast" },
-        ]}
-        rightChips={[
-          { label: "RP-05 Benchmarking" },
-          { label: "RP-06 Client Health" },
-          { label: "RP-07 Exports" },
-        ]}
-      />
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
-        <p className="text-sm text-slate-500">Revenue, profitability, and utilization intelligence.</p>
       </div>
       <StatStrip
         stats={[

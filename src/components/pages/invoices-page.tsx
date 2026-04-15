@@ -36,50 +36,35 @@ export function InvoicesPageClient({ statusFilter }: { statusFilter?: string }) 
   const paid = rows.filter((invoice) => invoice.status === "paid").reduce((sum, invoice) => sum + invoice.amount, 0);
 
   return (
-    <section className="space-y-4">
-      <PageContext
-        breadcrumb={["Internal Hub", "Finance"]}
-        chipLabel="Finance Screens"
-        chips={[
-          { label: "FI-01 Dashboard", active: true },
-          { label: "FI-02 Invoices List" },
-          { label: "FI-03 Create Invoice" },
-          { label: "FI-04 Timesheet Billing" },
-        ]}
-        rightChips={[
-          { label: "FI-05 Generate Invoice" },
-          { label: "FI-06 Expenses" },
-          { label: "FI-07 Forecast" },
-        ]}
-      />
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Invoices</h1>
-        <p className="text-sm text-slate-500">Convert effort to cash and clear overdue receivables quickly.</p>
-      </div>
-      <StatStrip
-        stats={[
-          { label: "Total Revenue", value: formatCurrency(paid), valueTone: "success" },
-          { label: "Outstanding", value: formatCurrency(outstanding), valueTone: "warning" },
-          { label: "Overdue", value: formatCurrency(overdue), valueTone: "danger" },
-          { label: "Invoices", value: String(rows.length) },
-        ]}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoice Tracker</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <section className="h-full min-h-0 overflow-y-auto pr-1">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between py-4">
+          <h1 className="text-3xl font-bold text-slate-800 tracking-[-0.03em]">Invoices</h1>
+        </div>
+        <StatStrip
+          stats={[
+            { label: "Total Revenue", value: formatCurrency(paid), hint: "Settled this period" },
+            { label: "Outstanding", value: formatCurrency(outstanding), hint: "Pending payment" },
+            { label: "Overdue", value: formatCurrency(overdue), hint: "Requires follow-up" },
+            { label: "Invoices", value: String(rows.length), hint: "Total volume" },
+          ]}
+        />
+        <Card className="border-none shadow-none bg-transparent">
+          <CardHeader className="px-0 pb-4">
+            <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">Invoice Tracker</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
           <DataTable
             rows={rows}
             columns={[
               { key: "id", title: "Invoice", render: (invoice) => invoice.id.toUpperCase() },
               {
                 key: "scope",
-                title: "Client / Project",
+                title: "Client / Project Cluster",
                 render: (invoice) => (
                   <div>
-                    <p className="font-medium text-slate-800">{invoice.clientName}</p>
-                    <p className="text-xs text-slate-500">{invoice.projectName}</p>
+                    <p className="font-bold text-slate-800 tracking-tight leading-none">{invoice.clientName}</p>
+                    <p className="text-sm text-slate-400 mt-1 font-medium leading-none">{invoice.projectName}</p>
                   </div>
                 ),
               },
@@ -108,20 +93,21 @@ export function InvoicesPageClient({ statusFilter }: { statusFilter?: string }) 
                   invoice.status === "paid" ? (
                     <span className="text-xs text-slate-400">Settled</span>
                   ) : (
-                    <div className="flex gap-1">
-                      <Button variant="subtle" className="text-xs" onClick={() => updateInvoiceStatus(invoice.id, "sent")}>
+                    <div className="flex justify-start items-center gap-2">
+                      <Button variant="subtle" className="h-9 px-4 text-xs font-bold" onClick={() => updateInvoiceStatus(invoice.id, "sent")}>
                         Send
                       </Button>
-                      <Button variant="subtle" className="text-xs" onClick={() => updateInvoiceStatus(invoice.id, "paid")}>
-                        Mark paid
+                      <Button variant="subtle" className="h-9 px-4 text-xs font-bold" onClick={() => updateInvoiceStatus(invoice.id, "paid")}>
+                        Mark Paid
                       </Button>
                     </div>
                   ),
               },
             ]}
           />
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   );
 }

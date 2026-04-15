@@ -193,17 +193,17 @@ export function TimesheetPageClient() {
 
       <div className="flex flex-row items-center justify-between sm:flex-wrap lg:flex-nowrap gap-3 py-4">
         <h1 className="text-3xl font-bold text-slate-900 tracking-[-0.03em] shrink-0">Timesheet</h1>
-        
+
         <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
           <div className="flex items-center rounded-xl border border-slate-200/60 bg-white shadow-sm overflow-hidden text-sm shrink-0">
-            <button type="button" className="p-1.5 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, -7))}>
+            <button type="button" className="p-2 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, -7))}>
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-2 py-1.5 font-semibold text-slate-800">
               <CalendarDays className="h-4 w-4 text-slate-400" />
               <span className="hidden sm:inline">This Week</span>
             </div>
-            <button type="button" className="p-1.5 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, 7))}>
+            <button type="button" className="p-2 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, 7))}>
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -293,8 +293,8 @@ export function TimesheetPageClient() {
                   return (
                     <tr key={user.id} className="group hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-slate-900 tracking-tight">{user.name}</p>
-                        <p className="text-sm text-slate-400 mt-0.5 font-medium">{user.role}</p>
+                        <p className="font-semibold text-slate-800 tracking-tight leading-none">{user.name}</p>
+                        <p className="text-sm text-slate-400 mt-1 font-medium leading-none">{user.role}</p>
                       </td>
                       {weekDays.map((day) => {
                         const hours = dayHoursForUser(user.id, day);
@@ -306,7 +306,7 @@ export function TimesheetPageClient() {
                           </td>
                         );
                       })}
-                      <td className="px-6 py-4 font-bold text-slate-900 tracking-tight">{userTotal.toFixed(1)}h</td>
+                      <td className="px-6 py-4 font-bold text-slate-800 tracking-tight">{userTotal.toFixed(1)}h</td>
                       <td className="px-6 py-4">
                         <Badge
                           label={`${utilization}%`}

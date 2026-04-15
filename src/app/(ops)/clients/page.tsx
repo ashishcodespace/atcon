@@ -40,24 +40,8 @@ export default function ClientsPage() {
 
   return (
     <section className="space-y-4">
-      <PageContext
-        breadcrumb={["Internal Hub", "Clients"]}
-        chipLabel="Clients Screens"
-        chips={[
-          { label: "CL-01 List", active: true },
-          { label: "CL-02 Detail" },
-          { label: "CL-03 Drawer" },
-          { label: "CL-04 Bulk Actions" },
-        ]}
-        rightChips={[
-          { label: "CL-07 Invite User" },
-          { label: "CL-08 Edit Role" },
-          { label: "CL-09 Deactivate" },
-        ]}
-      />
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Clients</h1>
-        <p className="text-sm text-slate-500">Accounts, billing posture, and delivery health at a glance.</p>
       </div>
 
       <StatStrip

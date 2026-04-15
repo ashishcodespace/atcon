@@ -26,24 +26,8 @@ export default function ResourcesPage() {
 
   return (
     <section className="space-y-4">
-      <PageContext
-        breadcrumb={["Internal Hub", "People"]}
-        chipLabel="People Screens"
-        chips={[
-          { label: "PE-01 Directory", active: true },
-          { label: "PE-02 New/Edit" },
-          { label: "PE-03 Person Detail" },
-          { label: "PE-04 Approvals" },
-        ]}
-        rightChips={[
-          { label: "PE-05 Leave Request" },
-          { label: "PE-06 Expense Claim" },
-          { label: "PE-07 Approve/Reject" },
-        ]}
-      />
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Resources</h1>
-        <p className="text-sm text-slate-500">Team workload, availability, and assignment pressure.</p>
       </div>
       <StatStrip
         stats={[

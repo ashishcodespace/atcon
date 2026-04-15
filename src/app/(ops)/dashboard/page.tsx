@@ -161,13 +161,13 @@ export default function DashboardPage() {
                 {insights.atRiskProjects.slice(0, 3).map((project) => (
                   <div key={project.id} className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-700" />
+                      <AlertTriangle className="h-4 w-4 text-amber-900" />
                       <div>
-                        <p className="text-sm font-medium text-slate-800">{project.name}</p>
-                        <p className="text-xs text-slate-500">Risk score {project.riskScore}: schedule and dependency pressure</p>
+                        <p className="text-sm font-bold text-slate-900">{project.name}</p>
+                        <p className="text-xs text-amber-900 font-medium">Risk score {project.riskScore}: schedule and dependency pressure</p>
                       </div>
                     </div>
-                    <Link href={`/projects?filter=at-risk`} className="text-xs font-medium text-slate-700 hover:text-slate-900">
+                    <Link href={`/projects?filter=at-risk`} className="text-xs font-bold text-slate-900 hover:text-black underline underline-offset-2">
                       Review
                     </Link>
                   </div>
@@ -175,12 +175,12 @@ export default function DashboardPage() {
                 {insights.overdueInvoices.slice(0, 2).map((invoice) => (
                   <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">Invoice {invoice.id.toUpperCase()} overdue</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-bold text-slate-900">Invoice {invoice.id.toUpperCase()} overdue</p>
+                      <p className="text-xs text-rose-900 font-medium">
                         {formatCurrency(invoice.amount)} due {formatDate(invoice.dueDate)}
                       </p>
                     </div>
-                    <Link href="/invoices?status=overdue" className="text-xs font-medium text-rose-700 hover:text-rose-800">
+                    <Link href="/invoices?status=overdue" className="text-xs font-bold text-rose-900 hover:text-rose-950 underline underline-offset-2">
                       Send reminder
                     </Link>
                   </div>

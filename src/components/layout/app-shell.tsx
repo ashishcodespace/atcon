@@ -84,7 +84,7 @@ export function AppShell({ children }: AppShellProps) {
                   (!isMobileOpen && isSidebarCollapsed)
                     ? "md:justify-center md:px-2 md:py-3 md:gap-0"
                     : "px-4 py-2.5 gap-4",
-                  isActive ? "bg-slate-100 text-slate-900 font-bold shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                  isActive ? "bg-slate-100 text-slate-700 font-bold shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-700",
                 )}
                 onClick={() => setIsMobileOpen(false)}
               >
@@ -129,6 +129,7 @@ export function AppShell({ children }: AppShellProps) {
                 type="text"
                 placeholder="Search resources, clients, initiatives..."
                 className="bg-transparent outline-none w-full text-slate-700 placeholder:text-slate-400 font-medium tracking-tight"
+                aria-label="Search platform resources, clients, and initiatives"
               />
             </div>
           </div>
