@@ -3,12 +3,13 @@
 import { create } from "zustand";
 
 import { mockData } from "@/data/mock-data";
-import { AppData, InvoiceStatus, TaskStatus } from "@/types/domain";
+import { AppData, InvoiceStatus, TaskStatus, TimeLog } from "@/types/domain";
 
 type OpsState = AppData & {
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
   reassignTask: (taskId: string, assigneeId: string) => void;
   updateInvoiceStatus: (invoiceId: string, status: InvoiceStatus) => void;
+  addTimeLog: (log: Omit<TimeLog, "id">) => void;
 };
 
 export const useOpsStore = create<OpsState>((set) => ({
@@ -26,5 +27,17 @@ export const useOpsStore = create<OpsState>((set) => ({
       invoices: state.invoices.map((invoice) =>
         invoice.id === invoiceId ? { ...invoice, status } : invoice,
       ),
+    })),
+  addTimeLog: (log) =>
+    set((state) => ({
+      timeLogs: [
+        ...state.timeLogs,
+        {
+          ...log,
+          id: typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `log-${Date.now()}`,
+        },
+      ],
     })),
 }));
