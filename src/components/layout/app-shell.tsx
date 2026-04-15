@@ -136,7 +136,7 @@ export function AppShell({ children }: AppShellProps) {
               )}
               <div
                 className={clsx(
-                  "absolute right-0 top-full mt-2 w-48 z-20 rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-200/50 transition-all duration-200 origin-top-right",
+                  "absolute right-0 top-full mt-2 w-40 z-20 rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-200/50 transition-all duration-200 origin-top-right",
                   hubDropdownOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"
                 )}
               >

@@ -62,24 +62,24 @@ export default function DashboardPage() {
   return (
     <section className="h-full min-h-0 overflow-y-auto lg:overflow-hidden pr-1">
       <div className="flex flex-col lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4">
-        <PageContext
+        {/* <PageContext
           breadcrumb={[]}
-        // chipLabel="Dashboard Screens"
-        // chips={[
-        //   { label: "Overview", active: true },
-        //   { label: "Delivery" },
-        //   { label: "Revenue" },
-        //   { label: "Team" },
-        // ]}
-        // rightChips={[
-        //   { label: "Checklist", active: true },
-        //   { label: "Board View" },
-        //   { label: "Internal Hub" },
-        // ]}
-        />
+        chipLabel="Dashboard Screens"
+        chips={[
+          { label: "Overview", active: true },
+          { label: "Delivery" },
+          { label: "Revenue" },
+          { label: "Team" },
+        ]}
+        rightChips={[
+          { label: "Checklist", active: true },
+          { label: "Board View" },
+          { label: "Internal Hub" },
+        ]}
+        /> */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900 -mt-4"> Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-slate-900"> Dashboard</h1>
             {/* <p className="text-sm text-slate-500">What needs attention right now across delivery and revenue.</p> */}
           </div>
           {/* <Button variant="subtle" className="gap-1">
@@ -92,7 +92,7 @@ export default function DashboardPage() {
           <StatStrip
             stats={[
               { label: "Active Projects", value: String(metrics.activeProjects), hint: "Delivery in motion" },
-              { label: "Revenue (Paid)", value: formatCurrency(metrics.revenue), hint: "Closed invoices", valueTone: "success" },
+              // { label: "Revenue (Paid)", value: formatCurrency(metrics.revenue), hint: "Closed invoices", valueTone: "success" },
               { label: "Pending Invoices", value: String(metrics.pendingInvoices), hint: "Need follow-up", valueTone: insights.overdueInvoices.length ? "danger" : "default" },
               { label: "Team Utilization", value: `${metrics.teamUtilization}%`, hint: "Capacity usage", valueTone: "warning" },
               { label: "Tasks Due Soon", value: String(metrics.tasksDue), hint: "Next 4 days", valueTone: metrics.tasksDue > 5 ? "danger" : "default" },

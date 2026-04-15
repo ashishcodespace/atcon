@@ -175,8 +175,8 @@ export function TimesheetPageClient() {
 
   return (
     <section className="space-y-4">
-      <PageContext
-        breadcrumb={["Internal Hub", "Timesheet"]}
+      {/* <PageContext
+        breadcrumb={[]}
         chipLabel="Time Screens"
         chips={[
           { label: "TM-01 Weekly Sheet", active: true },
@@ -189,12 +189,12 @@ export function TimesheetPageClient() {
           { label: "TM-06 Utilization" },
           { label: "TM-07 Audit Trail" },
         ]}
-      />
+      /> */}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Timesheet</h1>
-          <p className="text-sm text-slate-500">Capture effort clearly, then convert it into reliable billing data.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 ">Timesheet</h1>
+          {/* <p className="text-sm text-slate-500">Capture effort clearly, then convert it into reliable billing data.</p> */}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="subtle" className="gap-1.5" onClick={() => setWeekStart((prev) => addDays(prev, -7))}>
@@ -219,7 +219,7 @@ export function TimesheetPageClient() {
           { label: "Billable Hours", value: `${billableHours.toFixed(1)}h`, hint: `${Math.round((billableHours / Math.max(totalHours, 1)) * 100)}% billable mix` },
           { label: "Active Members", value: String(activeMembers), hint: "Logged this week" },
           { label: "Avg Daily Hours", value: `${avgDailyHours}h`, hint: "Mon-Fri average" },
-          { label: "Estimated Billable Value", value: formatCurrency(estimatedValue), hint: "Based on client rates" },
+          // { label: "Estimated Billable Value", value: formatCurrency(estimatedValue), hint: "Based on client rates" },
         ]}
       />
 

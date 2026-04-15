@@ -9,7 +9,7 @@ type StatItem = {
 
 export function StatStrip({ stats }: { stats: StatItem[] }) {
   return (
-    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 flex-wrap">
+    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 flex-wrap">
       {stats.map((stat) => (
         <Card key={stat.label} className="rounded-xl">
           <CardContent className="space-y-1 p-4">
