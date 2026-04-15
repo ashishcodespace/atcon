@@ -45,14 +45,21 @@ export function AppShell({ children }: AppShellProps) {
       {/* Sidebar */}
       <aside
         className={clsx(
-          "transition-all duration-300 ease-in-out border-r border-slate-200 bg-white flex flex-col z-50 overflow-hidden whitespace-nowrap",
+          "transition-[width] duration-300 ease-in-out border-r border-slate-200 bg-white flex flex-col z-50 overflow-hidden whitespace-nowrap",
           "fixed inset-y-0 left-0 md:static md:translate-x-0",
           isMobileOpen ? "translate-x-0 w-64 px-2 py-4 shadow-xl md:shadow-none" : "-translate-x-full md:translate-x-0 py-4",
-          !isMobileOpen && isSidebarCollapsed ? "md:w-16 md:px-2" : "md:w-64 md:px-2"
+          !isMobileOpen && isSidebarCollapsed ? "md:w-20 md:px-2" : "md:w-64 md:px-2"
         )}
       >
-        <div className={clsx("mb-8 flex items-center gap-2", (!isMobileOpen && isSidebarCollapsed) ? "justify-center" : "px-3")}>
-          <img src={LogoImage.src} alt="Logo" className="h-6 w-auto object-contain object-left shrink-0 md:block hidden" />
+        <div className={clsx("transition-all duration-300", (!isMobileOpen && isSidebarCollapsed) ? "mb-4 px-0" : "mb-8 px-3")}>
+          <img
+            src={LogoImage.src}
+            alt="Logo"
+            className={clsx(
+              "h-6 w-auto object-contain transition-all duration-300 shrink-0 md:block hidden",
+              (!isMobileOpen && isSidebarCollapsed) ? "opacity-0 w-0 h-0" : "opacity-100 w-auto h-6"
+            )}
+          />
 
           {/* Mobile close button */}
           <button
@@ -73,14 +80,21 @@ export function AppShell({ children }: AppShellProps) {
                 href={item.href}
                 title={item.label}
                 className={clsx(
-                  "flex items-center rounded-xl px-3 py-2 text-sm transition-colors",
-                  (!isMobileOpen && isSidebarCollapsed) ? "md:justify-center" : "gap-3",
-                  isActive ? "bg-slate-100 text-slate-700 shadow-sm shadow-emerald-500/20" : "text-slate-600 hover:bg-slate-100",
+                  "flex items-center rounded-xl transition-all duration-300",
+                  (!isMobileOpen && isSidebarCollapsed)
+                    ? "md:justify-center md:px-2 md:py-3 md:gap-0"
+                    : "px-4 py-2.5 gap-4",
+                  isActive ? "bg-slate-100 text-slate-900 font-bold shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                 )}
                 onClick={() => setIsMobileOpen(false)}
               >
-                <Icon className={clsx("h-4 w-4", (!isMobileOpen && isSidebarCollapsed) ? "md:min-w-[1rem] md:min-h-[1rem]" : "")} />
-                <span className={clsx((!isMobileOpen && isSidebarCollapsed) ? "md:hidden truncate" : "")}>{item.label}</span>
+                <Icon className={clsx("h-[18px] w-[18px] shrink-0", (!isMobileOpen && isSidebarCollapsed) ? "md:min-w-[1.2rem] md:min-h-[1.2rem]" : "")} />
+                <span className={clsx(
+                  "tracking-[-0.01em] transition-all duration-300 overflow-hidden",
+                  (!isMobileOpen && isSidebarCollapsed) ? "md:opacity-0 md:w-0" : "opacity-100 w-auto"
+                )}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -103,18 +117,18 @@ export function AppShell({ children }: AppShellProps) {
 
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden md:block p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+              className="hidden md:block p-2 -ml-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
               aria-label="Toggle Desktop Sidebar"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 flex-1 max-w-md transition-all focus-within:border-emerald-500 focus-within:bg-white focus-within:shadow-sm focus-within:ring-1 focus-within:ring-emerald-500">
-              <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <div className="hidden md:flex items-center gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 px-4 py-2.5 text-sm text-slate-500 flex-1 max-w-lg transition-all focus-within:border-emerald-500/50 focus-within:bg-white focus-within:shadow-md focus-within:ring-4 focus-within:ring-emerald-500/5 group">
+              <Search className="h-[18px] w-[18px] shrink-0 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
               <input
                 type="text"
-                placeholder="Search clients, projects..."
-                className="bg-transparent outline-none w-full text-slate-700 placeholder-slate-400"
+                placeholder="Search resources, clients, initiatives..."
+                className="bg-transparent outline-none w-full text-slate-700 placeholder:text-slate-400 font-medium tracking-tight"
               />
             </div>
           </div>
@@ -181,7 +195,7 @@ export function AppShell({ children }: AppShellProps) {
               )}
               <div
                 className={clsx(
-                  "absolute right-0 top-full mt-2 w-48 z-20 rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-200/50 transition-all duration-200 origin-top-right",
+                  "absolute right-0 top-full mt-2 w-40 z-20 rounded-xl border border-slate-200 bg-white py-1 shadow-lg shadow-slate-200/50 transition-all duration-200 origin-top-right",
                   profileDropdownOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"
                 )}
               >

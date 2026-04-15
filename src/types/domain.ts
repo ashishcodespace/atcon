@@ -21,6 +21,8 @@ export type Project = {
   progress: number;
   startDate: string;
   endDate: string;
+  managerId?: string;
+  description?: string;
 };
 
 export type User = {

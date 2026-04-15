@@ -3,11 +3,11 @@ import clsx from "clsx";
 type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: "border border-slate-200 bg-white/70 text-slate-700 backdrop-blur-sm",
-  success: "border border-emerald-200 bg-emerald-50/80 text-emerald-700",
-  warning: "border border-amber-200 bg-amber-50/80 text-amber-700",
-  danger: "border border-rose-200 bg-rose-50/80 text-rose-700",
-  info: "border border-sky-200 bg-sky-50/80 text-sky-700",
+  neutral: "border-slate-200/50 bg-slate-50 text-slate-500",
+  success: "border-emerald-200/40 bg-emerald-50/50 text-emerald-600",
+  warning: "border-amber-200/40 bg-amber-50/50 text-amber-600",
+  danger: "border-rose-200/40 bg-rose-50/50 text-rose-600",
+  info: "border-sky-200/40 bg-sky-50/50 text-sky-600",
 };
 
 type BadgeProps = {
@@ -20,7 +20,7 @@ export function Badge({ label, tone = "neutral", className }: BadgeProps) {
   return (
     <span
       className={clsx(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-[0.08em]",
         toneClasses[tone],
         className,
       )}

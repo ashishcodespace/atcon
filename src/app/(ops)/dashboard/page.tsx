@@ -77,25 +77,19 @@ export default function DashboardPage() {
           { label: "Internal Hub" },
         ]}
         /> */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900"> Dashboard</h1>
-            {/* <p className="text-sm text-slate-500">What needs attention right now across delivery and revenue.</p> */}
+            <h1 className="text-3xl font-bold text-slate-900 tracking-[-0.03em]">Dashboard</h1>
           </div>
-          {/* <Button variant="subtle" className="gap-1">
-            Weekly digest
-            <ArrowUpRight className="h-4 w-4" />
-          </Button> */}
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <StatStrip
             stats={[
-              { label: "Active Projects", value: String(metrics.activeProjects), hint: "Delivery in motion" },
-              // { label: "Revenue (Paid)", value: formatCurrency(metrics.revenue), hint: "Closed invoices", valueTone: "success" },
-              { label: "Pending Invoices", value: String(metrics.pendingInvoices), hint: "Need follow-up", valueTone: insights.overdueInvoices.length ? "danger" : "default" },
-              { label: "Team Utilization", value: `${metrics.teamUtilization}%`, hint: "Capacity usage", valueTone: "warning" },
-              { label: "Tasks Due Soon", value: String(metrics.tasksDue), hint: "Next 4 days", valueTone: metrics.tasksDue > 5 ? "danger" : "default" },
+              { label: "Active Portfolio", value: String(metrics.activeProjects), hint: "Delivery in motion" },
+              { label: "Pending Invoices", value: String(metrics.pendingInvoices), hint: "Follow-up required" },
+              { label: "Allocation", value: `${metrics.teamUtilization}%`, hint: "Capacity usage" },
+              { label: "Urgent Tasks", value: String(metrics.tasksDue), hint: "Due soon" },
             ]}
           />
         </div>
@@ -106,7 +100,7 @@ export default function DashboardPage() {
               <CardTitle>Revenue Trend + Forecast</CardTitle>
               <Badge label={`Forecast ${formatCurrency(insights.forecastRevenue)}`} tone="info" />
             </CardHeader>
-            <CardContent className="h-[200px]">
+            <CardContent className="h-[250px] w-full min-h-[250px] sm:h-[300px]">
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenueTrend} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
@@ -137,7 +131,7 @@ export default function DashboardPage() {
               <CardTitle>Team Capacity Risk</CardTitle>
               <Badge label={`${insights.overloadedUsers.length} overloaded`} tone={insights.overloadedUsers.length ? "danger" : "success"} />
             </CardHeader>
-            <CardContent className="h-[200px]">
+            <CardContent className="h-[250px] w-full min-h-[250px] sm:h-[300px]">
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={utilizationBars}>

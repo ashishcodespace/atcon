@@ -2,7 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import clsx from "clsx";
-import { CalendarDays, ChevronLeft, ChevronRight, Clock3, Plus, Users, X } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3, Plus, Users, X } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
 import { PageContext } from "@/components/shared/page-context";
@@ -191,24 +191,25 @@ export function TimesheetPageClient() {
         ]}
       /> */}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900 ">Timesheet</h1>
-          {/* <p className="text-sm text-slate-500">Capture effort clearly, then convert it into reliable billing data.</p> */}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="subtle" className="gap-1.5" onClick={() => setWeekStart((prev) => addDays(prev, -7))}>
-            <ChevronLeft className="h-4 w-4" />
-            Prev Week
-          </Button>
-          <Badge label={`${DAY_DATE.format(weekStart)} - ${DAY_DATE.format(weekEnd)}`} tone="info" />
-          <Button variant="subtle" className="gap-1.5" onClick={() => setWeekStart((prev) => addDays(prev, 7))}>
-            Next Week
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button className="gap-1.5" onClick={() => setShowAddModal(true)}>
-            <Plus className="h-4 w-4" />
-            Add Time
+      <div className="flex flex-row items-center justify-between sm:flex-wrap lg:flex-nowrap gap-3 py-4">
+        <h1 className="text-3xl font-bold text-slate-900 tracking-[-0.03em] shrink-0">Timesheet</h1>
+        
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
+          <div className="flex items-center rounded-xl border border-slate-200/60 bg-white shadow-sm overflow-hidden text-sm shrink-0">
+            <button type="button" className="p-1.5 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, -7))}>
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-2 py-1.5 font-semibold text-slate-800">
+              <CalendarDays className="h-4 w-4 text-slate-400" />
+              <span className="hidden sm:inline">This Week</span>
+            </div>
+            <button type="button" className="p-1.5 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, 7))}>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+          <Button className="gap-2 cursor-pointer px-4 sm:px-6 shrink-0 h-10 sm:h-11 font-semibold tracking-tight shadow-md hover:shadow-lg transition-all" onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4 stroke-[3]" />
+            <span className="hidden sm:inline">Add Time</span>
           </Button>
         </div>
       </div>
@@ -223,14 +224,14 @@ export function TimesheetPageClient() {
         ]}
       />
 
-      <Card>
-        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-1">
+      <Card className="border-slate-200/60 shadow-sm overflow-hidden">
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 bg-slate-50/30 border-b border-slate-100/50">
+          <div className="flex items-center gap-1 sm:gap-2 rounded-xl border border-slate-200 bg-slate-100/40 p-1">
             <button
               type="button"
               className={clsx(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "my" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700",
+                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer",
+                activeTab === "my" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/50",
               )}
               onClick={() => setActiveTab("my")}
             >
@@ -239,71 +240,74 @@ export function TimesheetPageClient() {
             <button
               type="button"
               className={clsx(
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === "all" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700",
+                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer",
+                activeTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/50",
               )}
               onClick={() => setActiveTab("all")}
             >
-              All Timesheets
+              All Team
             </button>
           </div>
 
           {activeTab === "my" ? (
-            <label className="text-sm text-slate-600">
-              Member:{" "}
-              <select
-                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 outline-none focus:border-emerald-500"
-                value={selectedUserId}
-                onChange={(event) => setSelectedUserId(event.target.value)}
-              >
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
+            <label className="text-sm text-slate-600 flex items-center gap-2">
+              Member
+              <div className="relative">
+                <select
+                  className="appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 shadow-sm cursor-pointer"
+                  value={selectedUserId}
+                  onChange={(event) => setSelectedUserId(event.target.value)}
+                >
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+              </div>
             </label>
           ) : null}
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <table className="min-w-[760px] w-full text-left">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-50/50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500">Member</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Member</th>
                   {weekDays.map((day) => (
-                    <th key={day.toISOString()} className="px-3 py-2 text-xs font-semibold text-slate-500">
+                    <th key={day.toISOString()} className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">
                       <p>{DAY_NAME.format(day)}</p>
-                      <p className="text-[11px] font-normal text-slate-400">{DAY_DATE.format(day)}</p>
+                      <p className="text-[10px] font-medium text-slate-300 mt-0.5">{DAY_DATE.format(day)}</p>
                     </th>
                   ))}
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500">Total</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500">Capacity</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Total</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-[0.08em] text-slate-400">Capacity</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100/50">
                 {visibleUsers.map((user) => {
                   const userTotal = weeklyHoursByUser(user.id);
                   const utilization = Math.round((userTotal / Math.max(user.capacityHours, 1)) * 100);
                   return (
-                    <tr key={user.id} className="border-t border-slate-100 text-sm text-slate-700">
-                      <td className="px-3 py-3">
-                        <p className="font-medium text-slate-800">{user.name}</p>
-                        <p className="text-xs text-slate-500">{user.role}</p>
+                    <tr key={user.id} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-slate-900 tracking-tight">{user.name}</p>
+                        <p className="text-sm text-slate-400 mt-0.5 font-medium">{user.role}</p>
                       </td>
                       {weekDays.map((day) => {
                         const hours = dayHoursForUser(user.id, day);
                         return (
-                          <td key={`${user.id}-${day.toISOString()}`} className="px-3 py-3">
-                            <div className="inline-flex min-w-14 justify-center rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700">
+                          <td key={`${user.id}-${day.toISOString()}`} className="px-6 py-4">
+                            <div className="inline-flex min-w-16 justify-center rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm group-hover:border-slate-300 transition-all">
                               {hours > 0 ? `${hours.toFixed(1)}h` : "-"}
                             </div>
                           </td>
                         );
                       })}
-                      <td className="px-3 py-3 font-semibold text-slate-800">{userTotal.toFixed(1)}h</td>
-                      <td className="px-3 py-3">
+                      <td className="px-6 py-4 font-bold text-slate-900 tracking-tight">{userTotal.toFixed(1)}h</td>
+                      <td className="px-6 py-4">
                         <Badge
                           label={`${utilization}%`}
                           tone={utilization > 95 ? "danger" : utilization > 80 ? "warning" : "success"}
@@ -316,7 +320,7 @@ export function TimesheetPageClient() {
             </table>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4">
             <Card className="rounded-xl border-slate-100 shadow-none">
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-1.5">
@@ -348,26 +352,7 @@ export function TimesheetPageClient() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-xl border-slate-100 shadow-none">
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-1.5">
-                  <Users className="h-4 w-4 text-slate-500" />
-                  Team Notes
-                </CardTitle>
-                <Badge label="Smart hints" tone="info" />
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-slate-600">
-                <p className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
-                  Add short notes when logging internal work, so finance can separate non-billable effort quickly.
-                </p>
-                <p className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
-                  Days with less than 4h usually indicate missing logs. Use Add Time before submitting the week.
-                </p>
-                <p className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
-                  Keep billable entries linked to a task for cleaner invoice generation and audit trails.
-                </p>
-              </CardContent>
-            </Card>
+
           </div>
         </CardContent>
       </Card>
@@ -382,7 +367,7 @@ export function TimesheetPageClient() {
               </div>
               <button
                 type="button"
-                className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
                 onClick={() => setShowAddModal(false)}
               >
                 <X className="h-4 w-4" />
@@ -393,17 +378,20 @@ export function TimesheetPageClient() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-600">
                   Member
-                  <select
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    value={form.userId}
-                    onChange={(event) => setForm((prev) => ({ ...prev, userId: event.target.value }))}
-                  >
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      className="appearance-none w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm outline-none focus:border-emerald-500 cursor-pointer"
+                      value={form.userId}
+                      onChange={(event) => setForm((prev) => ({ ...prev, userId: event.target.value }))}
+                    >
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                  </div>
                 </label>
 
                 <label className="text-sm text-slate-600">
@@ -421,37 +409,43 @@ export function TimesheetPageClient() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="text-sm text-slate-600">
                   Project
-                  <select
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    value={form.projectId}
-                    onChange={(event) => {
-                      const nextProjectId = event.target.value;
-                      const nextTaskId = tasks.find((task) => task.projectId === nextProjectId)?.id ?? "";
-                      setForm((prev) => ({ ...prev, projectId: nextProjectId, taskId: nextTaskId }));
-                    }}
-                  >
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      className="appearance-none w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm outline-none focus:border-emerald-500 cursor-pointer"
+                      value={form.projectId}
+                      onChange={(event) => {
+                        const nextProjectId = event.target.value;
+                        const nextTaskId = tasks.find((task) => task.projectId === nextProjectId)?.id ?? "";
+                        setForm((prev) => ({ ...prev, projectId: nextProjectId, taskId: nextTaskId }));
+                      }}
+                    >
+                      {projects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                  </div>
                 </label>
 
                 <label className="text-sm text-slate-600">
                   Task
-                  <select
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-                    value={form.taskId}
-                    onChange={(event) => setForm((prev) => ({ ...prev, taskId: event.target.value }))}
-                    required
-                  >
-                    {tasksForSelectedProject.map((task) => (
-                      <option key={task.id} value={task.id}>
-                        {task.title}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative mt-1">
+                    <select
+                      className="appearance-none w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm outline-none focus:border-emerald-500 cursor-pointer"
+                      value={form.taskId}
+                      onChange={(event) => setForm((prev) => ({ ...prev, taskId: event.target.value }))}
+                      required
+                    >
+                      {tasksForSelectedProject.map((task) => (
+                        <option key={task.id} value={task.id}>
+                          {task.title}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+                  </div>
                 </label>
               </div>
 
@@ -495,8 +489,7 @@ export function TimesheetPageClient() {
                 <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" className="gap-1.5">
-                  <CalendarDays className="h-4 w-4" />
+                <Button type="submit">
                   Save Entry
                 </Button>
               </div>
