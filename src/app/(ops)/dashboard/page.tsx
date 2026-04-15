@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useShallow } from "zustand/react/shallow";
-import { useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore, useState } from "react";
 
 import { DataTable } from "@/components/shared/data-table";
-import { PageContext } from "@/components/shared/page-context";
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate, getDashboardMetrics, getOperationalInsights } from "@/lib/ops-logic";
 import { useOpsStore } from "@/store/ops-store";
@@ -30,19 +28,37 @@ export default function DashboardPage() {
       users: state.users,
       timeLogs: state.timeLogs,
       invoices: state.invoices,
+      updateInvoiceStatus: state.updateInvoiceStatus,
     })),
   );
+  const [showAlertSpotlight, setShowAlertSpotlight] = useState(true);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setShowAlertSpotlight(false);
+    }, 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   const metrics = getDashboardMetrics(data);
   const insights = getOperationalInsights(data);
 
-  const revenueTrend = [
-    { month: "Jan", value: 32000 },
-    { month: "Feb", value: 36500 },
-    { month: "Mar", value: 40200 },
-    { month: "Apr", value: 41800 },
-    { month: "May", value: 45500 },
-  ];
+  const revenueTrend = useMemo(() => {
+    const monthMap = new Map<string, number>();
+    data.invoices
+      .filter((invoice) => invoice.status === "paid")
+      .forEach((invoice) => {
+        const month = new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(invoice.issueDate));
+        monthMap.set(month, (monthMap.get(month) ?? 0) + invoice.amount);
+      });
+
+    if (monthMap.size === 0) {
+      return [{ month: "Current", value: 0 }];
+    }
+
+    return Array.from(monthMap.entries()).map(([month, value]) => ({ month, value }));
+  }, [data.invoices]);
 
   const utilizationBars = data.users.map((user) => {
     const assignedHours = data.tasks
@@ -60,53 +76,51 @@ export default function DashboardPage() {
     .slice(0, 5);
 
   return (
-    <section className="h-full min-h-0">
-      <div className="grid h-full min-h-0 grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4">
-        <PageContext
-          breadcrumb={["Internal Hub", "Dashboard"]}
-          chipLabel="Dashboard Screens"
-          chips={[
-            { label: "Overview", active: true },
-            { label: "Delivery" },
-            { label: "Revenue" },
-            { label: "Team" },
-          ]}
-          rightChips={[
-            { label: "Checklist", active: true },
-            { label: "Board View" },
-            { label: "Internal Hub" },
-          ]}
-        />
-        <div className="flex items-center justify-between">
+    <section className="h-full min-h-0 overflow-y-auto lg:overflow-hidden pr-1">
+      <div className="flex flex-col lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4">
+        {/* <PageContext
+          breadcrumb={[]}
+        chipLabel="Dashboard Screens"
+        chips={[
+          { label: "Overview", active: true },
+          { label: "Delivery" },
+          { label: "Revenue" },
+          { label: "Team" },
+        ]}
+        rightChips={[
+          { label: "Checklist", active: true },
+          { label: "Board View" },
+          { label: "Internal Hub" },
+        ]}
+        /> */}
+        <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Decision Dashboard</h1>
-            <p className="text-sm text-slate-500">What needs attention right now across delivery and revenue.</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-[-0.03em]">Dashboard</h1>
           </div>
-          <Button variant="subtle" className="gap-1">
-            Weekly digest
-            <ArrowUpRight className="h-4 w-4" />
-          </Button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <StatStrip
             stats={[
-              { label: "Active Projects", value: String(metrics.activeProjects), hint: "Delivery in motion" },
-              { label: "Revenue (Paid)", value: formatCurrency(metrics.revenue), hint: "Closed invoices", valueTone: "success" },
-              { label: "Pending Invoices", value: String(metrics.pendingInvoices), hint: "Need follow-up", valueTone: insights.overdueInvoices.length ? "danger" : "default" },
-              { label: "Team Utilization", value: `${metrics.teamUtilization}%`, hint: "Capacity usage", valueTone: "warning" },
-              { label: "Tasks Due Soon", value: String(metrics.tasksDue), hint: "Next 4 days", valueTone: metrics.tasksDue > 5 ? "danger" : "default" },
+              { label: "Active Portfolio", value: String(metrics.activeProjects), hint: "Delivery in motion" },
+              { label: "Pending Invoices", value: String(metrics.pendingInvoices), hint: "Follow-up required" },
+              { label: "Allocation", value: `${metrics.teamUtilization}%`, hint: "Capacity usage" },
+              { label: "Urgent Tasks", value: String(metrics.tasksDue), hint: "Due soon" },
             ]}
           />
         </div>
 
-        <div className="grid min-h-0 grid-cols-12 grid-rows-2 gap-4">
-          <Card className="col-span-7 min-h-0">
+        <div className="grid min-h-0 grid-cols-1 lg:grid-cols-12 lg:grid-rows-2 gap-4">
+          <Card
+            className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Revenue Trend + Forecast</CardTitle>
               <Badge label={`Forecast ${formatCurrency(insights.forecastRevenue)}`} tone="info" />
             </CardHeader>
-            <CardContent className="h-[200px]">
+            <CardContent className="h-[250px] w-full min-h-[250px] sm:h-[300px]">
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenueTrend} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
@@ -132,12 +146,16 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-5 min-h-0">
+          <Card
+            className={`col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Team Capacity Risk</CardTitle>
               <Badge label={`${insights.overloadedUsers.length} overloaded`} tone={insights.overloadedUsers.length ? "danger" : "success"} />
             </CardHeader>
-            <CardContent className="h-[200px]">
+            <CardContent className="h-[250px] w-full min-h-[250px] sm:h-[300px]">
               {isClient ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={utilizationBars}>
@@ -157,7 +175,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-7 min-h-0 flex flex-col">
+          <Card
+            className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
+              showAlertSpotlight
+                ? "relative z-10 ring-2 ring-amber-300 shadow-xl shadow-amber-200/40 animate-pulse"
+                : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Alerts & Recommended Actions</CardTitle>
               <Badge label={`${insights.atRiskProjects.length} projects at risk`} tone={insights.atRiskProjects.length ? "warning" : "success"} />
@@ -167,13 +191,13 @@ export default function DashboardPage() {
                 {insights.atRiskProjects.slice(0, 3).map((project) => (
                   <div key={project.id} className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-700" />
+                      <AlertTriangle className="h-4 w-4 text-amber-900" />
                       <div>
-                        <p className="text-sm font-medium text-slate-800">{project.name}</p>
-                        <p className="text-xs text-slate-500">Risk score {project.riskScore}: schedule and dependency pressure</p>
+                        <p className="text-sm font-bold text-slate-900">{project.name}</p>
+                        <p className="text-xs text-amber-900 font-medium">Risk score {project.riskScore}: schedule and dependency pressure</p>
                       </div>
                     </div>
-                    <Link href={`/projects?filter=at-risk`} className="text-xs font-medium text-slate-700 hover:text-slate-900">
+                    <Link href={`/projects?filter=at-risk`} className="text-xs font-bold text-slate-900 hover:text-black underline underline-offset-2">
                       Review
                     </Link>
                   </div>
@@ -181,21 +205,29 @@ export default function DashboardPage() {
                 {insights.overdueInvoices.slice(0, 2).map((invoice) => (
                   <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
                     <div>
-                      <p className="text-sm font-medium text-slate-800">Invoice {invoice.id.toUpperCase()} overdue</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm font-bold text-slate-900">Invoice {invoice.id.toUpperCase()} overdue</p>
+                      <p className="text-xs text-rose-900 font-medium">
                         {formatCurrency(invoice.amount)} due {formatDate(invoice.dueDate)}
                       </p>
                     </div>
-                    <Link href="/invoices?status=overdue" className="text-xs font-medium text-rose-700 hover:text-rose-800">
+                    <button
+                      type="button"
+                      className="text-xs font-bold text-rose-900 hover:text-rose-950 underline underline-offset-2"
+                      onClick={() => data.updateInvoiceStatus(invoice.id, "sent")}
+                    >
                       Send reminder
-                    </Link>
+                    </button>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="col-span-5 min-h-0 flex flex-col">
+          <Card
+            className={`col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Tasks Due</CardTitle>
               <Link href="/tasks?filter=due" className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">

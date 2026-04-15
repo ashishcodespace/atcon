@@ -16,7 +16,7 @@ type PageContextProps = {
 
 export function PageContext({ breadcrumb, chipLabel, chips = [], rightChips = [], rightSlot }: PageContextProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-0">
       <p className="text-xs font-medium text-slate-500">{breadcrumb.join("  >  ")}</p>
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2 overflow-x-auto">

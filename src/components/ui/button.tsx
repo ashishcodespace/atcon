@@ -9,18 +9,18 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-[0_8px_20px_-12px_rgba(20,184,166,0.8)] hover:from-teal-600 hover:to-emerald-600",
-  ghost: "bg-transparent text-slate-700 hover:bg-white/70",
-  subtle: "bg-white/70 text-slate-700 backdrop-blur-sm hover:bg-white",
+    "bg-slate-900 text-white shadow-xl shadow-slate-900/10 hover:bg-slate-800 transition-all active:scale-[0.98]",
+  ghost: "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors",
+  subtle: "bg-white text-slate-700 border border-slate-200/80 shadow-sm hover:bg-slate-50 transition-all",
 };
 
 export function Button({ className, variant = "primary", ...props }: ButtonProps) {
   return (
     <button
       className={clsx(
-        "inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold tracking-tight transition-all duration-200 cursor-pointer",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-40",
         variantClasses[variant],
         className,
       )}
