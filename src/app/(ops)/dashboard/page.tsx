@@ -1,16 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useShallow } from "zustand/react/shallow";
-import { useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore, useState } from "react";
 
 import { DataTable } from "@/components/shared/data-table";
-import { PageContext } from "@/components/shared/page-context";
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate, getDashboardMetrics, getOperationalInsights } from "@/lib/ops-logic";
 import { useOpsStore } from "@/store/ops-store";
@@ -30,19 +28,37 @@ export default function DashboardPage() {
       users: state.users,
       timeLogs: state.timeLogs,
       invoices: state.invoices,
+      updateInvoiceStatus: state.updateInvoiceStatus,
     })),
   );
+  const [showAlertSpotlight, setShowAlertSpotlight] = useState(true);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setShowAlertSpotlight(false);
+    }, 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   const metrics = getDashboardMetrics(data);
   const insights = getOperationalInsights(data);
 
-  const revenueTrend = [
-    { month: "Jan", value: 32000 },
-    { month: "Feb", value: 36500 },
-    { month: "Mar", value: 40200 },
-    { month: "Apr", value: 41800 },
-    { month: "May", value: 45500 },
-  ];
+  const revenueTrend = useMemo(() => {
+    const monthMap = new Map<string, number>();
+    data.invoices
+      .filter((invoice) => invoice.status === "paid")
+      .forEach((invoice) => {
+        const month = new Intl.DateTimeFormat("en-GB", { month: "short" }).format(new Date(invoice.issueDate));
+        monthMap.set(month, (monthMap.get(month) ?? 0) + invoice.amount);
+      });
+
+    if (monthMap.size === 0) {
+      return [{ month: "Current", value: 0 }];
+    }
+
+    return Array.from(monthMap.entries()).map(([month, value]) => ({ month, value }));
+  }, [data.invoices]);
 
   const utilizationBars = data.users.map((user) => {
     const assignedHours = data.tasks
@@ -95,7 +111,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid min-h-0 grid-cols-1 lg:grid-cols-12 lg:grid-rows-2 gap-4">
-          <Card className="col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0">
+          <Card
+            className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Revenue Trend + Forecast</CardTitle>
               <Badge label={`Forecast ${formatCurrency(insights.forecastRevenue)}`} tone="info" />
@@ -126,7 +146,11 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0">
+          <Card
+            className={`col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Team Capacity Risk</CardTitle>
               <Badge label={`${insights.overloadedUsers.length} overloaded`} tone={insights.overloadedUsers.length ? "danger" : "success"} />
@@ -151,7 +175,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col">
+          <Card
+            className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
+              showAlertSpotlight
+                ? "relative z-10 ring-2 ring-amber-300 shadow-xl shadow-amber-200/40 animate-pulse"
+                : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Alerts & Recommended Actions</CardTitle>
               <Badge label={`${insights.atRiskProjects.length} projects at risk`} tone={insights.atRiskProjects.length ? "warning" : "success"} />
@@ -180,16 +210,24 @@ export default function DashboardPage() {
                         {formatCurrency(invoice.amount)} due {formatDate(invoice.dueDate)}
                       </p>
                     </div>
-                    <Link href="/invoices?status=overdue" className="text-xs font-bold text-rose-900 hover:text-rose-950 underline underline-offset-2">
+                    <button
+                      type="button"
+                      className="text-xs font-bold text-rose-900 hover:text-rose-950 underline underline-offset-2"
+                      onClick={() => data.updateInvoiceStatus(invoice.id, "sent")}
+                    >
                       Send reminder
-                    </Link>
+                    </button>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 flex flex-col">
+          <Card
+            className={`col-span-1 lg:col-span-5 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
+              showAlertSpotlight ? "opacity-60 blur-[1px]" : ""
+            }`}
+          >
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Tasks Due</CardTitle>
               <Link href="/tasks?filter=due" className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700">

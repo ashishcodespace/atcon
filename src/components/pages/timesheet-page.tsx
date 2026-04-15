@@ -2,15 +2,13 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import clsx from "clsx";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3, Plus, Users, X } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3, Plus, X } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 
-import { PageContext } from "@/components/shared/page-context";
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/ops-logic";
 import { useOpsStore } from "@/store/ops-store";
 
 type TimesheetTab = "my" | "all";
@@ -27,6 +25,7 @@ type AddTimeForm = {
 
 const DAY_NAME = new Intl.DateTimeFormat("en-GB", { weekday: "short" });
 const DAY_DATE = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" });
+const WEEK_RANGE_DATE = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" });
 
 function toIsoDate(date: Date) {
   const tzOffset = date.getTimezoneOffset() * 60_000;
@@ -68,6 +67,7 @@ export function TimesheetPageClient() {
   const defaultUserId = users[1]?.id ?? users[0]?.id ?? "";
   const [activeTab, setActiveTab] = useState<TimesheetTab>("my");
   const [selectedUserId, setSelectedUserId] = useState(defaultUserId);
+  const [includeWeekend, setIncludeWeekend] = useState(false);
 
   const initialWeek = useMemo(() => {
     const latestLog = [...timeLogs].sort((a, b) => b.date.localeCompare(a.date))[0];
@@ -77,13 +77,22 @@ export function TimesheetPageClient() {
   const [weekStart, setWeekStart] = useState(initialWeek);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
-  const weekDays = useMemo(() => Array.from({ length: 5 }, (_, idx) => addDays(weekStart, idx)), [weekStart]);
+  const daysInView = includeWeekend ? 7 : 5;
+  const weekEnd = useMemo(() => addDays(weekStart, daysInView - 1), [weekStart, daysInView]);
+  const weekDays = useMemo(() => Array.from({ length: daysInView }, (_, idx) => addDays(weekStart, idx)), [weekStart, daysInView]);
+  const weekLabel = `${WEEK_RANGE_DATE.format(weekStart)} - ${WEEK_RANGE_DATE.format(weekEnd)}`;
 
   const logsInWeek = useMemo(
     () => timeLogs.filter((log) => dateInRange(log.date, weekStart, weekEnd)),
     [timeLogs, weekStart, weekEnd],
   );
+
+  const scopedLogs = useMemo(() => {
+    if (activeTab === "my") {
+      return logsInWeek.filter((log) => log.userId === selectedUserId);
+    }
+    return logsInWeek;
+  }, [activeTab, logsInWeek, selectedUserId]);
 
   const visibleUsers = useMemo(() => {
     if (activeTab === "my") {
@@ -93,22 +102,15 @@ export function TimesheetPageClient() {
     return users;
   }, [activeTab, selectedUserId, users]);
 
-  const totalHours = logsInWeek.reduce((sum, log) => sum + log.hours, 0);
-  const billableHours = logsInWeek.filter((log) => log.billable).reduce((sum, log) => sum + log.hours, 0);
-  const activeMembers = new Set(logsInWeek.map((log) => log.userId)).size;
-  const avgDailyHours = totalHours ? (totalHours / weekDays.length).toFixed(1) : "0.0";
-  const estimatedValue = logsInWeek
-    .filter((log) => log.billable)
-    .reduce((sum, log) => {
-      const project = projects.find((item) => item.id === log.projectId);
-      const client = clients.find((item) => item.id === project?.clientId);
-      return sum + log.hours * (client?.hourlyRate ?? 0);
-    }, 0);
+  const totalHours = scopedLogs.reduce((sum, log) => sum + log.hours, 0);
+  const billableHours = scopedLogs.filter((log) => log.billable).reduce((sum, log) => sum + log.hours, 0);
+  const activeMembers = new Set(scopedLogs.map((log) => log.userId)).size;
+  const avgDailyHours = totalHours ? (totalHours / daysInView).toFixed(1) : "0.0";
 
   const projectBreakdown = useMemo(() => {
     return projects
       .map((project) => {
-        const logs = logsInWeek.filter((log) => log.projectId === project.id);
+        const logs = scopedLogs.filter((log) => log.projectId === project.id);
         const total = logs.reduce((sum, log) => sum + log.hours, 0);
         if (!total) return null;
         const billable = logs.filter((log) => log.billable).reduce((sum, log) => sum + log.hours, 0);
@@ -124,7 +126,7 @@ export function TimesheetPageClient() {
       })
       .filter((row): row is NonNullable<typeof row> => row !== null)
       .sort((a, b) => b.total - a.total);
-  }, [projects, logsInWeek, clients]);
+  }, [projects, scopedLogs, clients]);
 
   const defaultProjectId = projects[0]?.id ?? "";
   const defaultTaskId = tasks.find((task) => task.projectId === defaultProjectId)?.id ?? tasks[0]?.id ?? "";
@@ -144,14 +146,41 @@ export function TimesheetPageClient() {
   );
 
   const weeklyHoursByUser = (userId: string) =>
-    logsInWeek.filter((log) => log.userId === userId).reduce((sum, log) => sum + log.hours, 0);
+    scopedLogs.filter((log) => log.userId === userId).reduce((sum, log) => sum + log.hours, 0);
 
   const dayHoursForUser = (userId: string, day: Date) => {
     const dayIso = toIsoDate(day);
-    return logsInWeek
+    return scopedLogs
       .filter((log) => log.userId === userId && log.date === dayIso)
       .reduce((sum, log) => sum + log.hours, 0);
   };
+
+  const openAddModal = () => {
+    setForm((prev) => {
+      const nextUserId =
+        activeTab === "my" ? selectedUserId || defaultUserId : prev.userId || selectedUserId || defaultUserId;
+      const nextProjectId = prev.projectId || defaultProjectId;
+      const projectTasks = tasks.filter((task) => task.projectId === nextProjectId);
+      const nextTaskId = projectTasks.some((task) => task.id === prev.taskId) ? prev.taskId : projectTasks[0]?.id ?? "";
+
+      return {
+        ...prev,
+        userId: nextUserId,
+        projectId: nextProjectId,
+        taskId: nextTaskId,
+        date: toIsoDate(weekStart),
+      };
+    });
+    setShowAddModal(true);
+  };
+
+  const canSaveEntry =
+    Boolean(form.userId) &&
+    Boolean(form.projectId) &&
+    Boolean(form.taskId) &&
+    Boolean(form.date) &&
+    Number.isFinite(Number(form.hours)) &&
+    Number(form.hours) > 0;
 
   const handleCreateEntry = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -201,13 +230,13 @@ export function TimesheetPageClient() {
             </button>
             <div className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-2 py-1.5 font-semibold text-slate-800">
               <CalendarDays className="h-4 w-4 text-slate-400" />
-              <span className="hidden sm:inline">This Week</span>
+              <span className="hidden sm:inline">{weekLabel}</span>
             </div>
             <button type="button" className="p-2 sm:p-2.5 transition-colors hover:bg-slate-50 text-slate-600" onClick={() => setWeekStart((prev) => addDays(prev, 7))}>
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
-          <Button className="gap-2 cursor-pointer px-4 sm:px-6 shrink-0 h-10 sm:h-11 font-semibold tracking-tight shadow-md hover:shadow-lg transition-all" onClick={() => setShowAddModal(true)}>
+          <Button className="gap-2 cursor-pointer px-4 sm:px-6 shrink-0 h-10 sm:h-11 font-semibold tracking-tight shadow-md hover:shadow-lg transition-all" onClick={openAddModal}>
             <Plus className="h-4 w-4 stroke-[3]" />
             <span className="hidden sm:inline">Add Time</span>
           </Button>
@@ -219,7 +248,7 @@ export function TimesheetPageClient() {
           { label: "Total Hours", value: `${totalHours.toFixed(1)}h`, hint: "Current week" },
           { label: "Billable Hours", value: `${billableHours.toFixed(1)}h`, hint: `${Math.round((billableHours / Math.max(totalHours, 1)) * 100)}% billable mix` },
           { label: "Active Members", value: String(activeMembers), hint: "Logged this week" },
-          { label: "Avg Daily Hours", value: `${avgDailyHours}h`, hint: "Mon-Fri average" },
+          { label: "Avg Daily Hours", value: `${avgDailyHours}h`, hint: includeWeekend ? "Mon-Sun average" : "Mon-Fri average" },
           // { label: "Estimated Billable Value", value: formatCurrency(estimatedValue), hint: "Based on client rates" },
         ]}
       />
@@ -249,25 +278,37 @@ export function TimesheetPageClient() {
             </button>
           </div>
 
-          {activeTab === "my" ? (
-            <label className="text-sm text-slate-600 flex items-center gap-2">
-              Member
-              <div className="relative">
-                <select
-                  className="appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 shadow-sm cursor-pointer"
-                  value={selectedUserId}
-                  onChange={(event) => setSelectedUserId(event.target.value)}
-                >
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
-              </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+              <input
+                type="checkbox"
+                checked={includeWeekend}
+                onChange={(event) => setIncludeWeekend(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300"
+              />
+              Include weekend extras
             </label>
-          ) : null}
+
+            {activeTab === "my" ? (
+              <label className="text-sm text-slate-600 flex items-center gap-2">
+                Member
+                <div className="relative">
+                  <select
+                    className="appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 shadow-sm cursor-pointer"
+                    value={selectedUserId}
+                    onChange={(event) => setSelectedUserId(event.target.value)}
+                  >
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+                </div>
+              </label>
+            ) : null}
+          </div>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -438,11 +479,17 @@ export function TimesheetPageClient() {
                       onChange={(event) => setForm((prev) => ({ ...prev, taskId: event.target.value }))}
                       required
                     >
-                      {tasksForSelectedProject.map((task) => (
-                        <option key={task.id} value={task.id}>
-                          {task.title}
+                      {tasksForSelectedProject.length > 0 ? (
+                        tasksForSelectedProject.map((task) => (
+                          <option key={task.id} value={task.id}>
+                            {task.title}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="" disabled>
+                          No tasks available
                         </option>
-                      ))}
+                      )}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
                   </div>
@@ -489,7 +536,7 @@ export function TimesheetPageClient() {
                 <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={!canSaveEntry}>
                   Save Entry
                 </Button>
               </div>
