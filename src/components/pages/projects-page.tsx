@@ -207,7 +207,7 @@ export function ProjectsPageClient({ filter }: { filter?: string }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 relative shrink-0">
+        <div className="flex items-center gap-3 relative shrink-0 ml-auto">
           {/* Desktop View Switcher */}
           <div className="hidden sm:inline-flex items-center rounded-xl bg-white p-1 border border-slate-200/60 shadow-sm">
             <button

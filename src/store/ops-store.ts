@@ -4,12 +4,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { mockData } from "@/data/mock-data";
-import { AppData, InvoiceStatus, Project, TaskStatus, TimeLog } from "@/types/domain";
+import { AppData, Invoice, InvoiceStatus, Project, TaskStatus, TimeLog } from "@/types/domain";
 
 type OpsState = AppData & {
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
   reassignTask: (taskId: string, assigneeId: string) => void;
   updateInvoiceStatus: (invoiceId: string, status: InvoiceStatus) => void;
+  addInvoice: (invoice: Omit<Invoice, "issueDate">) => void;
   addTimeLog: (log: Omit<TimeLog, "id">) => void;
   addProject: (project: Omit<Project, "id">) => void;
   resetDemoData: () => void;
@@ -43,6 +44,16 @@ export const useOpsStore = create<OpsState>()(
                 ? crypto.randomUUID()
                 : `log-${Date.now()}`,
             },
+          ],
+        })),
+      addInvoice: (invoice) =>
+        set((state) => ({
+          invoices: [
+            {
+              ...invoice,
+              issueDate: new Date().toISOString().split("T")[0],
+            },
+            ...state.invoices,
           ],
         })),
       addProject: (project) =>
