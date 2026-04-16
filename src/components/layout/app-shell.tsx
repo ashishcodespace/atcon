@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, ClipboardList, FolderKanban, LayoutDashboard, Search, Users, Wallet, Menu, User as UserIcon, LogOut, X, Clock } from "lucide-react";
+import { Bell, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, ClipboardList, FolderKanban, LayoutDashboard, Search, Users, Wallet, Menu, User as UserIcon, LogOut, X, Clock, Zap, FileText } from "lucide-react";
 import clsx from "clsx";
 import { ReactNode, useMemo, useState } from "react";
 import LogoImage from "@/assets/logo.png";
@@ -14,10 +14,12 @@ const navigation = [
   { label: "Timesheet", href: "/timesheet", icon: Clock },
   { label: "Clients", href: "/clients", icon: BriefcaseBusiness },
   { label: "Projects", href: "/projects", icon: FolderKanban },
+  { label: "Contracts", href: "/contracts", icon: FileText },
   { label: "Tasks", href: "/tasks", icon: ClipboardList },
   { label: "Resources", href: "/resources", icon: Users },
   { label: "Invoices", href: "/invoices", icon: Wallet },
   { label: "Reports", href: "/reports", icon: ChartNoAxesCombined },
+  { label: "Automation", href: "/automation", icon: Zap },
 ];
 
 type AppShellProps = {
