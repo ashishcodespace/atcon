@@ -178,7 +178,7 @@ export default function DashboardPage() {
           <Card
             className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
               showAlertSpotlight
-                ? "relative z-10 ring-2 ring-amber-300 shadow-xl shadow-amber-200/40 animate-pulse"
+                ? "relative z-10 ring-2 ring-inset ring-amber-400 dark:ring-amber-500 shadow-xl shadow-amber-200/50 dark:shadow-amber-500/20 animate-pulse"
                 : ""
             }`}
           >
@@ -189,30 +189,30 @@ export default function DashboardPage() {
             <CardContent className="min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-2">
                 {insights.atRiskProjects.slice(0, 3).map((project) => (
-                  <div key={project.id} className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                  <div key={project.id} className="flex items-center justify-between rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-amber-900" />
+                      <AlertTriangle className="h-4 w-4 text-amber-900 dark:text-amber-400" />
                       <div>
                         <p className="text-sm font-bold text-slate-900">{project.name}</p>
-                        <p className="text-xs text-amber-900 font-medium">Risk score {project.riskScore}: schedule and dependency pressure</p>
+                        <p className="text-xs text-amber-900 dark:text-amber-400 font-medium">Risk score {project.riskScore}: schedule and dependency pressure</p>
                       </div>
                     </div>
-                    <Link href={`/projects?filter=at-risk`} className="text-xs font-bold text-slate-900 hover:text-black underline underline-offset-2">
+                    <Link href={`/projects?filter=at-risk`} className="text-xs font-bold text-slate-900 dark:hover:text-amber-200 hover:text-black underline underline-offset-2">
                       Review
                     </Link>
                   </div>
                 ))}
                 {insights.overdueInvoices.slice(0, 2).map((invoice) => (
-                  <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
+                  <div key={invoice.id} className="flex items-center justify-between rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-3 py-2">
                     <div>
                       <p className="text-sm font-bold text-slate-900">Invoice {invoice.id.toUpperCase()} overdue</p>
-                      <p className="text-xs text-rose-900 font-medium">
+                      <p className="text-xs text-rose-900 dark:text-rose-400 font-medium">
                         {formatCurrency(invoice.amount)} due {formatDate(invoice.dueDate)}
                       </p>
                     </div>
                     <button
                       type="button"
-                      className="text-xs font-bold text-rose-900 hover:text-rose-950 underline underline-offset-2"
+                      className="text-xs font-bold text-rose-900 dark:text-rose-400 dark:hover:text-rose-300 hover:text-rose-950 underline underline-offset-2"
                       onClick={() => data.updateInvoiceStatus(invoice.id, "sent")}
                     >
                       Send reminder

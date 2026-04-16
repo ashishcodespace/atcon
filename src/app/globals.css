@@ -1,11 +1,23 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode in Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fbfcfd;
   --foreground: #09090b;
   --surface-glass: rgba(255, 255, 255, 0.65);
   --surface-soft: #f4f4f5;
   --border-soft: rgba(39, 39, 42, 0.08);
+  --brand: #10b981;
+}
+
+.dark {
+  --background: #0f1117;
+  --foreground: #e8eaf0;
+  --surface-glass: rgba(20, 22, 30, 0.75);
+  --surface-soft: #1a1d27;
+  --border-soft: rgba(255, 255, 255, 0.07);
   --brand: #10b981;
 }
 
@@ -18,8 +30,8 @@
 
 body {
   background:
-    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.03), transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(14, 165, 233, 0.03), transparent 40%),
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.04), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(14, 165, 233, 0.04), transparent 40%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Inter, sans-serif;
@@ -35,3 +47,48 @@ body {
 ::selection {
   background: rgba(20, 184, 166, 0.2);
 }
+
+/* ── Smooth theme transitions ── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+/* ── Global dark mode overrides ──
+   Handles all the hardcoded slate-800/900 colours in page components
+   without having to edit every single file. */
+.dark .text-slate-900 { color: #f1f5f9 !important; }
+.dark .text-slate-800 { color: #e2e8f0 !important; }
+.dark .text-slate-700 { color: #cbd5e1 !important; }
+.dark .text-slate-600 { color: #94a3b8 !important; }
+.dark .text-slate-500 { color: #64748b !important; }
+
+.dark .bg-white       { background-color: #13151f !important; }
+.dark .bg-slate-50    { background-color: #1a1d27 !important; }
+.dark .bg-slate-100   { background-color: #1e2130 !important; }
+.dark .bg-slate-200   { background-color: #252836 !important; }
+
+.dark .border-slate-200  { border-color: rgba(255,255,255,0.08) !important; }
+.dark .border-slate-100  { border-color: rgba(255,255,255,0.05) !important; }
+.dark .divide-slate-100  > * + * { border-color: rgba(255,255,255,0.05) !important; }
+.dark .divide-y          > * + * { border-color: rgba(255,255,255,0.05) !important; }
+
+/* Cards */
+.dark [class*="bg-white"] { background-color: #13151f !important; }
+.dark [class*="bg-slate-50/"] { background-color: rgba(26,29,39,0.5) !important; }
+
+/* Inputs & selects */
+.dark input:not([type=range]),
+.dark select,
+.dark textarea {
+  background-color: #1e2130 !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Table */
+.dark table th { color: #64748b !important; }
+.dark table thead { background-color: #1a1d27 !important; }
+.dark table tbody tr:hover { background-color: rgba(255,255,255,0.03) !important; }
+
