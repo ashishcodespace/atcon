@@ -59,9 +59,12 @@ export default function ReportsPage() {
 
   const visibleProjectIds = new Set(visibleProjects.map((project) => project.id));
   const filteredLogs = timeLogs.filter((log) => visibleProjectIds.has(log.projectId));
+  const billableHours = filteredLogs.filter((log) => log.billable).reduce((sum, log) => sum + log.hours, 0);
+  const nonBillableHours = filteredLogs.filter((log) => !log.billable).reduce((sum, log) => sum + log.hours, 0);
+  const totalTrackedHours = billableHours + nonBillableHours;
   const utilizationPie = [
-    { name: "Billable", value: filteredLogs.filter((log) => log.billable).reduce((sum, log) => sum + log.hours, 0), color: "#334155" },
-    { name: "Non-billable", value: filteredLogs.filter((log) => !log.billable).reduce((sum, log) => sum + log.hours, 0) || 1, color: "#cbd5e1" },
+    { name: "Billable", value: billableHours, color: "#334155" },
+    { name: "Non-billable", value: nonBillableHours, color: "#cbd5e1" },
   ];
   const profitTotal = profitabilityRows.reduce((sum, row) => sum + row.margin, 0);
   const recognizedTotal = profitabilityRows.reduce((sum, row) => sum + row.recognized, 0);
@@ -108,7 +111,11 @@ export default function ReportsPage() {
           { label: "Recognized Revenue", value: formatCurrency(recognizedTotal), valueTone: "success" },
           { label: "Profitability", value: formatCurrency(profitTotal), valueTone: profitTotal > 0 ? "success" : "danger" },
           { label: "Billable Hours", value: `${utilizationPie[0].value}h` },
-          { label: "Utilization Mix", value: `${Math.round((utilizationPie[0].value / (utilizationPie[0].value + utilizationPie[1].value)) * 100)}%`, valueTone: "warning" },
+          {
+            label: "Utilization Mix",
+            value: `${totalTrackedHours ? Math.round((billableHours / totalTrackedHours) * 100) : 0}%`,
+            valueTone: "warning",
+          },
         ]}
       />
       <div className="grid grid-cols-12 gap-4">
