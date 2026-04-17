@@ -74,13 +74,13 @@ export default function ReportsPage() {
       <div>
         <h1 className="text-2xl font-semibold text-slate-900">Reports</h1>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Client</span>
+      <div className="flex flex-row items-center justify-between gap-3 bg-transparent">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-slate-500 hidden sm:inline">Client</span>
           <select
             value={clientFilter}
             onChange={(event) => setClientFilter(event.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none"
+            className="rounded-lg border border-slate-200 dark:border-white/10 dark:bg-slate-800 dark:text-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 outline-none w-auto max-w-[120px] sm:max-w-none text-ellipsis"
           >
             <option value="all">All clients</option>
             {clients.map((client) => (
@@ -90,16 +90,15 @@ export default function ReportsPage() {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">What-if cost</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <span className="text-xs text-slate-500 hidden sm:inline">What-if cost</span>
           {[75, 85, 95].map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => setCostPerHour(value)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                value === costPerHour ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${value === costPerHour ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900" : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700"
+                }`}
             >
               {formatCurrency(value)}/h
             </button>
@@ -148,7 +147,7 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-5">
+        <Card className="col-span-1 lg:col-span-5">
           <CardHeader>
             <CardTitle>Utilization Split</CardTitle>
           </CardHeader>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, X, CheckCircle2, ChevronDown } from "lucide-react";
+import { AnimatedModal } from "@/components/shared/animated-modal";
 import { formatCurrency, formatDate } from "@/lib/ops-logic";
 import { useOpsStore } from "@/store/ops-store";
 import { useShallow } from "zustand/react/shallow";
@@ -169,10 +170,8 @@ export function InvoicesPageClient({ statusFilter }: { statusFilter?: string }) 
       </section>
 
       {/* New Invoice Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeModal} />
-          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <AnimatedModal isOpen={showCreateModal} onClose={closeModal}>
+          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden">
 
             {/* Header */}
             <div className="flex items-center justify-between p-7 pb-5 border-b border-slate-100">
@@ -273,8 +272,7 @@ export function InvoicesPageClient({ statusFilter }: { statusFilter?: string }) 
               </>
             )}
           </div>
-        </div>
-      )}
+      </AnimatedModal>
     </>
   );
 }

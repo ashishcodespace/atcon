@@ -9,6 +9,7 @@ import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedModal } from "@/components/shared/animated-modal";
 import { useOpsStore } from "@/store/ops-store";
 
 type TimesheetTab = "my" | "all";
@@ -254,13 +255,13 @@ export function TimesheetPageClient() {
       />
 
       <Card className="border-slate-200/60 shadow-sm overflow-hidden">
-        <CardHeader className="flex flex-wrap items-center justify-between gap-3 px-6 py-5 bg-slate-50/30 border-b border-slate-100/50">
-          <div className="flex items-center gap-1 sm:gap-2 rounded-xl border border-slate-200 bg-slate-100/40 p-1">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5 bg-slate-50/30 dark:bg-[#13151f]/50 border-b border-slate-100/50 dark:border-white/5">
+          <div className="flex items-center w-full sm:w-auto gap-1 sm:gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100/40 dark:bg-slate-800 p-1">
             <button
               type="button"
               className={clsx(
-                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer",
-                activeTab === "my" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/50",
+                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer flex-1 sm:flex-none text-center",
+                activeTab === "my" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50",
               )}
               onClick={() => setActiveTab("my")}
             >
@@ -269,8 +270,8 @@ export function TimesheetPageClient() {
             <button
               type="button"
               className={clsx(
-                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer",
-                activeTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-white/50",
+                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer flex-1 sm:flex-none text-center",
+                activeTab === "all" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/50",
               )}
               onClick={() => setActiveTab("all")}
             >
@@ -278,23 +279,23 @@ export function TimesheetPageClient() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm">
+          <div className="flex flex-row flex-wrap items-center gap-3 w-full sm:w-auto">
+            <label className="inline-flex items-center justify-center sm:justify-start gap-2 rounded-lg border border-slate-200 dark:border-white/10 dark:bg-[#13151f] bg-white px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm flex-1 sm:flex-none">
               <input
                 type="checkbox"
                 checked={includeWeekend}
                 onChange={(event) => setIncludeWeekend(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 dark:bg-slate-800"
               />
               Include weekend extras
             </label>
 
             {activeTab === "my" ? (
-              <label className="text-sm text-slate-600 flex items-center gap-2">
-                Member
-                <div className="relative">
+              <label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2 flex-1 sm:flex-none w-full sm:w-auto">
+                <span className="hidden sm:inline">Member</span>
+                <div className="relative w-full sm:w-auto">
                   <select
-                    className="appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 shadow-sm cursor-pointer"
+                    className="appearance-none w-full sm:w-auto rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13151f] pl-3 pr-8 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 outline-none focus:border-emerald-500 shadow-sm cursor-pointer"
                     value={selectedUserId}
                     onChange={(event) => setSelectedUserId(event.target.value)}
                   >
@@ -398,9 +399,9 @@ export function TimesheetPageClient() {
         </CardContent>
       </Card>
 
-      {showAddModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4">
-          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      {/* Add Time Entry Modal */}
+      <AnimatedModal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl relative">
             <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Add Time Entry</h2>
@@ -542,8 +543,7 @@ export function TimesheetPageClient() {
               </div>
             </form>
           </div>
-        </div>
-      ) : null}
+      </AnimatedModal>
     </section>
   );
 }
