@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Columns3, Download, Search, SlidersHorizontal } from "lucide-react";
+import { Columns3, Download, Search, SlidersHorizontal, ArrowDownUp } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { DataTable } from "@/components/shared/data-table";
@@ -115,22 +115,15 @@ export default function ClientsPage() {
 
       <Card>
         <CardHeader className="space-y-3">
-          <CardTitle>Client Directory</CardTitle>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500">
-              <Search className="h-4 w-4" />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="w-52 bg-transparent outline-none placeholder:text-slate-400"
-                placeholder="Search clients..."
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1">
-                <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+          <div className="flex items-center justify-between">
+            <CardTitle>Client Directory</CardTitle>
+            
+            {/* Mobile Filters */}
+            <div className="flex sm:hidden items-center gap-0.5">
+              <div className="relative p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-500">
+                <SlidersHorizontal className="h-4 w-4" />
                 <select
-                  className="bg-transparent text-xs text-slate-700 outline-none"
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                   value={healthFilter}
                   onChange={(event) => setHealthFilter(event.target.value as typeof healthFilter)}
                 >
@@ -140,8 +133,80 @@ export default function ClientsPage() {
                   <option value="at_risk">At risk</option>
                 </select>
               </div>
-              <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1">
-                <span className="text-[11px] text-slate-500">Sort</span>
+              <div className="relative p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-500">
+                <ArrowDownUp className="h-4 w-4" />
+                <select
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value as typeof sortBy)}
+                >
+                  <option value="name_asc">Name</option>
+                  <option value="pending_desc">Pending amount</option>
+                  <option value="projects_desc">Projects</option>
+                </select>
+              </div>
+              <div className="relative">
+                <button type="button" className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500" onClick={() => setShowColumnsMenu((prev) => !prev)}>
+                  <Columns3 className="h-4 w-4" />
+                </button>
+                {showColumnsMenu ? (
+                  <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1d27] p-2 shadow-lg">
+                    {(
+                      [
+                        ["industry", "Industry"],
+                        ["billing", "Billing"],
+                        ["pending", "Pending amount"],
+                      ] as const
+                    ).map(([key, label]) => (
+                      <label key={key} className="flex items-center gap-2 px-2 py-1.5 text-xs text-slate-700 dark:text-slate-200">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[key]}
+                          onChange={(event) =>
+                            setVisibleColumns((prev) => ({
+                              ...prev,
+                              [key]: event.target.checked,
+                            }))
+                          }
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <button type="button" className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500" onClick={exportRows}>
+                <Download className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center w-full sm:w-auto gap-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13151f] px-3 py-2.5 sm:py-2 text-sm text-slate-500 dark:text-slate-400">
+              <Search className="h-4 w-4 shrink-0" />
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="w-full sm:w-52 bg-transparent outline-none placeholder:text-slate-400 dark:text-slate-200"
+                placeholder="Search clients..."
+              />
+            </div>
+            <div className="hidden sm:flex flex-wrap sm:flex-nowrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13151f] px-2 py-1">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <select
+                  className="bg-transparent text-xs text-slate-700 outline-none w-auto pr-6"
+                  value={healthFilter}
+                  onChange={(event) => setHealthFilter(event.target.value as typeof healthFilter)}
+                >
+                  <option value="all">All health</option>
+                  <option value="healthy">Healthy</option>
+                  <option value="watch">Watch</option>
+                  <option value="at_risk">At risk</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13151f] px-2 py-1">
+                <ArrowDownUp className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span className="text-[11px] text-slate-500 hidden sm:inline">Sort</span>
                 <select
                   className="bg-transparent text-xs text-slate-700 outline-none"
                   value={sortBy}
@@ -153,12 +218,12 @@ export default function ClientsPage() {
                 </select>
               </div>
               <div className="relative">
-                <Button variant="ghost" className="gap-1.5 text-xs" onClick={() => setShowColumnsMenu((prev) => !prev)}>
+                <Button variant="ghost" className="gap-1.5 text-xs px-3" onClick={() => setShowColumnsMenu((prev) => !prev)}>
                   <Columns3 className="h-3.5 w-3.5" />
-                  Columns
+                  <span>Columns</span>
                 </Button>
                 {showColumnsMenu ? (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                  <div className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1d27] p-2 shadow-lg">
                     {(
                       [
                         ["industry", "Industry"],
@@ -183,9 +248,9 @@ export default function ClientsPage() {
                   </div>
                 ) : null}
               </div>
-              <Button variant="ghost" className="gap-1.5 text-xs" onClick={exportRows}>
+              <Button variant="ghost" className="gap-1.5 text-xs px-3" onClick={exportRows}>
                 <Download className="h-3.5 w-3.5" />
-                Export
+                <span>Export</span>
               </Button>
             </div>
           </div>

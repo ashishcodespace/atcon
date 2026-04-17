@@ -144,46 +144,14 @@ export function SupportPageClient() {
               <KanbanSquare className="h-4 w-4" />
             </button>
           </div>
-          <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
+          <Button className="gap-2 px-3 sm:px-4" onClick={() => setShowCreateModal(true)}>
             <Plus className="h-4 w-4" />
-            New Ticket
+            <span className="hidden sm:inline">New Ticket</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3">
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by ticket, client, owner..."
-            className="w-full rounded-lg border border-slate-200 py-2 pl-10 pr-3 text-sm outline-none focus:border-emerald-500"
-          />
-        </div>
-        <select
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value as SupportTicketStatus | "all")}
-        >
-          <option value="all">All statuses</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
-        </select>
-        <select
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none"
-          value={priorityFilter}
-          onChange={(event) => setPriorityFilter(event.target.value as SupportTicketPriority | "all")}
-        >
-          <option value="all">All priorities</option>
-          <option value="urgent">Urgent</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
+
 
       <StatStrip
         stats={[
@@ -196,8 +164,43 @@ export function SupportPageClient() {
 
       {view === "list" ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Support Queue</CardTitle>
+          <CardHeader className="px-6 py-4 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardTitle className="text-lg font-bold">Support Queue</CardTitle>
+            <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search tickets..."
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500 transition-all"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  className="appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none hover:bg-slate-50 focus:border-emerald-500 transition-colors"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as SupportTicketStatus | "all")}
+                >
+                  <option value="all">Status</option>
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+                <select
+                  className="appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none hover:bg-slate-50 focus:border-emerald-500 transition-colors"
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value as SupportTicketPriority | "all")}
+                >
+                  <option value="all">Priority</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <DataTable
@@ -283,49 +286,78 @@ export function SupportPageClient() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
-          {boardColumns.map((column) => {
-            const columnRows = ticketsWithRefs.filter((ticket) => ticket.status === column.status);
-            return (
-              <Card key={column.status}>
-                <CardHeader className="flex items-center justify-between">
-                  <CardTitle>{column.label}</CardTitle>
-                  <Badge label={`${columnRows.length}`} tone={column.tone} />
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {columnRows.map((ticket) => (
-                    <div key={ticket.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                      <p className="text-sm font-medium text-slate-800">{ticket.title}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {ticket.clientName} · {ticket.ownerName}
-                      </p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <Badge label={ticket.priority} tone={ticket.priority === "urgent" ? "danger" : "neutral"} />
-                        <select
-                          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px]"
-                          value={ticket.status}
-                          onChange={(event) =>
-                            updateSupportTicketStatus(ticket.id, event.target.value as SupportTicketStatus)
-                          }
-                        >
-                          <option value="open">Open</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                          <option value="closed">Closed</option>
-                        </select>
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-800">Support Board</h2>
+            <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search cards..."
+                  className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500 transition-all"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none"
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value as SupportTicketPriority | "all")}
+                >
+                  <option value="all">Priority</option>
+                  <option value="urgent">Urgent</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+            {boardColumns.map((column) => {
+              const columnRows = ticketsWithRefs.filter((ticket) => ticket.status === column.status);
+              return (
+                <Card key={column.status}>
+                  <CardHeader className="flex items-center justify-between">
+                    <CardTitle>{column.label}</CardTitle>
+                    <Badge label={`${columnRows.length}`} tone={column.tone} />
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {columnRows.map((ticket) => (
+                      <div key={ticket.id} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-sm font-medium text-slate-800">{ticket.title}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {ticket.clientName} · {ticket.ownerName}
+                        </p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <Badge label={ticket.priority} tone={ticket.priority === "urgent" ? "danger" : "neutral"} />
+                          <select
+                            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px]"
+                            value={ticket.status}
+                            onChange={(event) =>
+                              updateSupportTicketStatus(ticket.id, event.target.value as SupportTicketStatus)
+                            }
+                          >
+                            <option value="open">Open</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {columnRows.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm text-slate-500">
-                      No tickets in this stage.
-                    </p>
-                  ) : null}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    ))}
+                    {columnRows.length === 0 ? (
+                      <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm text-slate-500">
+                        No tickets in this stage.
+                      </p>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {showCreateModal ? (

@@ -14,6 +14,8 @@ import {
   X,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
+import { AnimatedModal } from "@/components/shared/animated-modal";
 
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
@@ -217,313 +219,325 @@ export function ContractsPageClient() {
 
           <StatStrip stats={stats} />
 
-          <div className="flex flex-row items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by title, client, or reference..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition-all"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
-            </div>
-            <div className="relative shrink-0">
-              <select
-                className="appearance-none cursor-pointer bg-white border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-sm text-slate-700 outline-none hover:bg-slate-50 focus:border-emerald-500 transition-colors shadow-sm"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as ContractStatus | "all")}
-              >
-                <option value="all">All Status</option>
-                <option value="signed">Signed</option>
-                <option value="sent">Sent</option>
-                <option value="draft">Draft</option>
-                <option value="expired">Expired</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            </div>
-          </div>
+
 
           <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-[700px] w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400 bg-slate-50/60">
-                    <th className="px-6 py-4 rounded-tl-2xl">Title &amp; Reference</th>
-                    <th className="px-6 py-4">Client</th>
-                    <th className="px-6 py-4 text-right">Value</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Validity</th>
-                    <th className="px-6 py-4 text-right rounded-tr-2xl">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {filteredContracts.map((contract) => {
-                    const clientName = clients.find((client) => client.id === contract.clientId)?.name ?? "Unknown";
-                    return (
-                      <tr key={contract.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-5">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-slate-800 tracking-tight">{contract.title}</span>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase mt-0.5">
-                              {contract.reference}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <span className="text-sm font-semibold text-slate-600">{clientName}</span>
-                        </td>
-                        <td className="px-6 py-5 text-right font-mono text-sm font-bold text-slate-700">
-                          {formatCurrency(contract.value)}
-                        </td>
-                        <td className="px-6 py-5">{getStatusBadge(contract.status)}</td>
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                            <span>{new Date(`${contract.effectiveDate}T00:00:00`).toLocaleDateString()}</span>
-                            <span className="text-slate-300">→</span>
-                            <span>{new Date(`${contract.expiryDate}T00:00:00`).toLocaleDateString()}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
-                              title="View Document"
-                              onClick={() => setPreviewContractId(contract.id)}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </button>
-                            <button
-                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
-                              title="Edit"
-                              onClick={() => openEditModal(contract)}
-                            >
-                              <FileEdit className="h-4 w-4" />
-                            </button>
-                            {contract.status === "draft" ? (
-                              <button
-                                className="p-2 cursor-pointer text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
-                                title="Send for Signature"
-                                onClick={() => updateContractStatus(contract.id, "sent")}
-                              >
-                                <Send className="h-4 w-4" />
-                              </button>
-                            ) : contract.status === "sent" ? (
-                              <button
-                                className="px-2 py-1 text-[11px] rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors"
-                                onClick={() => updateContractStatus(contract.id, "signed")}
-                              >
-                                Mark Signed
-                              </button>
-                            ) : null}
-                            <button
-                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
-                              title="Download Summary"
-                              onClick={() => downloadContractSummary(contract)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            {filteredContracts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-                <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
-                  <FileText className="h-8 w-8 text-slate-300" />
+            {/* Table */}
+            <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm flex flex-col overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Contract Directory</h2>
+                <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+                  <div className="relative flex-1 md:flex-none md:w-80">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by title or reference..."
+                      className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:border-emerald-500 transition-all dark:text-slate-200"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative shrink-0">
+                    <select
+                      className="appearance-none cursor-pointer bg-white dark:bg-[#13151f] border border-slate-200 dark:border-white/10 rounded-xl pl-3 pr-9 py-2.5 text-sm text-slate-700 dark:text-slate-200 outline-none hover:bg-slate-50 dark:hover:bg-slate-800 focus:border-emerald-500 transition-colors shadow-sm"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value as ContractStatus | "all")}
+                    >
+                      <option value="all">All Status</option>
+                      <option value="signed">Signed</option>
+                      <option value="sent">Sent</option>
+                      <option value="draft">Draft</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  </div>
                 </div>
-                <h3 className="font-bold text-slate-800">No contracts found</h3>
-                <p className="text-sm text-slate-500 mt-1 max-w-[240px]">
-                  We could not find agreements matching your current filters.
-                </p>
               </div>
-            ) : null}
+              <div className="overflow-x-auto">
+                <table className="min-w-[700px] w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-100 uppercase tracking-widest text-[10px] font-bold text-slate-400 bg-slate-50/60">
+                      <th className="px-6 py-4 rounded-tl-2xl">Title &amp; Reference</th>
+                      <th className="px-6 py-4">Client</th>
+                      <th className="px-6 py-4 text-right">Value</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Validity</th>
+                      <th className="px-6 py-4 text-right rounded-tr-2xl">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {filteredContracts.map((contract) => {
+                      const clientName = clients.find((client) => client.id === contract.clientId)?.name ?? "Unknown";
+                      return (
+                        <tr key={contract.id} className="group hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-5">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-800 tracking-tight">{contract.title}</span>
+                              <span className="text-[11px] font-bold text-slate-400 uppercase mt-0.5">
+                                {contract.reference}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className="text-sm font-semibold text-slate-600">{clientName}</span>
+                          </td>
+                          <td className="px-6 py-5 text-right font-mono text-sm font-bold text-slate-700">
+                            {formatCurrency(contract.value)}
+                          </td>
+                          <td className="px-6 py-5">{getStatusBadge(contract.status)}</td>
+                          <td className="px-6 py-5">
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                              <span>{new Date(`${contract.effectiveDate}T00:00:00`).toLocaleDateString()}</span>
+                              <span className="text-slate-300">→</span>
+                              <span>{new Date(`${contract.expiryDate}T00:00:00`).toLocaleDateString()}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                                title="View Document"
+                                onClick={() => setPreviewContractId(contract.id)}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </button>
+                              <button
+                                className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                                title="Edit"
+                                onClick={() => openEditModal(contract)}
+                              >
+                                <FileEdit className="h-4 w-4" />
+                              </button>
+                              {contract.status === "draft" ? (
+                                <button
+                                  className="p-2 cursor-pointer text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                                  title="Send for Signature"
+                                  onClick={() => updateContractStatus(contract.id, "sent")}
+                                >
+                                  <Send className="h-4 w-4" />
+                                </button>
+                              ) : contract.status === "sent" ? (
+                                <button
+                                  className="px-2 py-1 text-[11px] rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors"
+                                  onClick={() => updateContractStatus(contract.id, "signed")}
+                                >
+                                  Mark Signed
+                                </button>
+                              ) : null}
+                              <button
+                                className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                                title="Download Summary"
+                                onClick={() => downloadContractSummary(contract)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {filteredContracts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+                  <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+                    <FileText className="h-8 w-8 text-slate-300" />
+                  </div>
+                  <h3 className="font-bold text-slate-800">No contracts found</h3>
+                  <p className="text-sm text-slate-500 mt-1 max-w-[240px]">
+                    We could not find agreements matching your current filters.
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </section>
+      
+      {/* New/Edit Contract Modal */}
+      <AnimatedModal isOpen={showCreateModal} onClose={closeModal}>
+        <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <h2 className="text-xl font-bold text-slate-800">
+              {editingContractId ? "Edit Contract" : "New Contract"}
+            </h2>
+            <button
+              type="button"
+              onClick={closeModal}
+              className="rounded-full p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-      {showCreateModal ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={closeModal}
-          />
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-              <h2 className="text-xl font-bold text-slate-800">
-                {editingContractId ? "Edit Contract" : "New Contract"}
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <div className="h-16 w-16 rounded-2xl bg-emerald-50 flex items-center justify-center animate-in zoom-in duration-300">
-                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                </div>
-                <div className="text-center">
-                  <p className="font-bold text-slate-800">
-                    {editingContractId ? "Contract Updated!" : "Contract Created!"}
-                  </p>
-                  <p className="text-sm text-slate-400 mt-0.5">Changes saved in demo state</p>
-                </div>
+          {submitted ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-emerald-50 flex items-center justify-center animate-in zoom-in duration-300">
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
               </div>
-            ) : (
-              <form
-                className="flex flex-col gap-4 px-6 py-5"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  handleSaveContract();
-                }}
-              >
+              <div className="text-center">
+                <p className="font-bold text-slate-800">
+                  {editingContractId ? "Contract Updated!" : "Contract Created!"}
+                </p>
+                <p className="text-sm text-slate-400 mt-0.5">Changes saved in demo state</p>
+              </div>
+            </div>
+          ) : (
+            <form
+              className="flex flex-col gap-4 px-6 py-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleSaveContract();
+              }}
+            >
+              <label className="block text-sm text-slate-600">
+                Contract Title
+                <input
+                  type="text"
+                  placeholder="e.g. Master Service Agreement"
+                  className={inputCls}
+                  value={form.title}
+                  onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                  required
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm text-slate-600">
-                  Contract Title
+                  Client
+                  <div className="relative mt-1">
+                    <select
+                      className={selectCls}
+                      value={form.clientId}
+                      onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))}
+                      required
+                    >
+                      <option value="">Select client…</option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>
+                          {client.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  </div>
+                </label>
+                <label className="block text-sm text-slate-600">
+                  Value (€)
                   <input
-                    type="text"
-                    placeholder="e.g. Master Service Agreement"
+                    type="number"
+                    placeholder="e.g. 50000"
                     className={inputCls}
-                    value={form.title}
-                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                    value={form.value}
+                    onChange={(event) => setForm((prev) => ({ ...prev, value: event.target.value }))}
                     required
                   />
                 </label>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block text-sm text-slate-600">
-                    Client
-                    <div className="relative mt-1">
-                      <select
-                        className={selectCls}
-                        value={form.clientId}
-                        onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))}
-                        required
-                      >
-                        <option value="">Select client…</option>
-                        {clients.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {client.name}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                    </div>
-                  </label>
-                  <label className="block text-sm text-slate-600">
-                    Value (€)
-                    <input
-                      type="number"
-                      placeholder="e.g. 50000"
-                      className={inputCls}
-                      value={form.value}
-                      onChange={(event) => setForm((prev) => ({ ...prev, value: event.target.value }))}
-                      required
-                    />
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block text-sm text-slate-600">
-                    Effective Date
-                    <input
-                      type="date"
-                      className={inputCls}
-                      value={form.effectiveDate}
-                      onChange={(event) => setForm((prev) => ({ ...prev, effectiveDate: event.target.value }))}
-                      required
-                    />
-                  </label>
-                  <label className="block text-sm text-slate-600">
-                    Expiry Date
-                    <input
-                      type="date"
-                      className={inputCls}
-                      value={form.expiryDate}
-                      onChange={(event) => setForm((prev) => ({ ...prev, expiryDate: event.target.value }))}
-                      required
-                    />
-                  </label>
-                </div>
-
+              <div className="grid grid-cols-2 gap-3">
                 <label className="block text-sm text-slate-600">
-                  Reference ID <span className="text-slate-400 font-normal">(optional)</span>
+                  Effective Date
                   <input
-                    type="text"
-                    placeholder="e.g. MSA-2026-001"
+                    type="date"
                     className={inputCls}
-                    value={form.reference}
-                    onChange={(event) => setForm((prev) => ({ ...prev, reference: event.target.value }))}
+                    value={form.effectiveDate}
+                    onChange={(event) => setForm((prev) => ({ ...prev, effectiveDate: event.target.value }))}
+                    required
                   />
                 </label>
+                <label className="block text-sm text-slate-600">
+                  Expiry Date
+                  <input
+                    type="date"
+                    className={inputCls}
+                    value={form.expiryDate}
+                    onChange={(event) => setForm((prev) => ({ ...prev, expiryDate: event.target.value }))}
+                    required
+                  />
+                </label>
+              </div>
 
-                <div className="flex items-center gap-3 pt-2 border-t border-slate-100 mt-1">
-                  <Button type="button" variant="ghost" className="flex-1 h-11 cursor-pointer" onClick={closeModal}>
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="flex-[2] h-11 shadow-lg disabled:opacity-30 disabled:grayscale transition-all cursor-pointer"
-                    disabled={!isFormValid}
-                  >
-                    {editingContractId ? "Save Changes" : "Save as Draft"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </div>
+              <label className="block text-sm text-slate-600">
+                Reference ID <span className="text-slate-400 font-normal">(optional)</span>
+                <input
+                  type="text"
+                  placeholder="e.g. MSA-2026-001"
+                  className={inputCls}
+                  value={form.reference}
+                  onChange={(event) => setForm((prev) => ({ ...prev, reference: event.target.value }))}
+                />
+              </label>
+
+              <div className="flex items-center gap-3 pt-2 border-t border-slate-100 mt-1">
+                <Button type="button" variant="ghost" className="flex-1 h-11 cursor-pointer" onClick={closeModal}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex-[2] h-11 shadow-lg disabled:opacity-30 disabled:grayscale transition-all cursor-pointer"
+                  disabled={!isFormValid}
+                >
+                  {editingContractId ? "Save Changes" : "Save as Draft"}
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
-      ) : null}
+      </AnimatedModal>
 
-      {previewContract ? (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
-            onClick={() => setPreviewContractId(null)}
-          />
-          <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+      {/* Preview Modal */}
+      <AnimatedModal isOpen={!!previewContractId} onClose={() => setPreviewContractId(null)}>
+        {previewContract && (
+          <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl p-0 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 bg-slate-50/30">
               <div>
                 <h3 className="text-base font-semibold text-slate-900">{previewContract.title}</h3>
                 <p className="text-xs text-slate-500">{previewContract.reference}</p>
               </div>
               <button
                 type="button"
-                className="rounded p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded p-1 text-slate-400 hover:bg-slate-100 transition-colors"
                 onClick={() => setPreviewContractId(null)}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="space-y-3 px-5 py-4 text-sm text-slate-600">
-              <p>
-                <span className="font-semibold text-slate-800">Client:</span>{" "}
-                {clients.find((client) => client.id === previewContract.clientId)?.name ?? "Unknown"}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-800">Contract Value:</span>{" "}
-                {formatCurrency(previewContract.value)}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-800">Validity:</span>{" "}
-                {previewContract.effectiveDate} to {previewContract.expiryDate}
-              </p>
-              <p className="text-xs text-slate-500">
-                This frontend preview represents the active mock contract terms for demo walkthroughs.
-              </p>
+            <div className="space-y-4 px-6 py-6 text-sm text-slate-600">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Client</p>
+                  <p className="font-semibold text-slate-800">
+                    {clients.find((client) => client.id === previewContract.clientId)?.name ?? "Unknown"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Value</p>
+                  <p className="font-bold text-emerald-600">{formatCurrency(previewContract.value)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Effective Date</p>
+                  <p className="font-semibold text-slate-800">{previewContract.effectiveDate}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-slate-400">Expiry Date</p>
+                  <p className="font-semibold text-slate-800">{previewContract.expiryDate}</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-slate-100">
+                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Demo Disclaimer</p>
+                <p className="text-xs text-slate-400 italic">
+                  This frontend preview represents the active mock contract terms for demo walkthroughs. 
+                  Actual PDF generation would occur in a production environment.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ) : null}
+        )}
+      </AnimatedModal>
     </>
   );
 }

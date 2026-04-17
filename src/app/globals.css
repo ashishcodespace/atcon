@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Enable class-based dark mode in Tailwind v4 */
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #fbfcfd;

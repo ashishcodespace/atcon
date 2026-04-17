@@ -178,7 +178,7 @@ export default function DashboardPage() {
           <Card
             className={`col-span-1 lg:col-span-7 min-h-[350px] lg:min-h-0 flex flex-col transition-all duration-500 ${
               showAlertSpotlight
-                ? "relative z-10 ring-2 ring-inset ring-amber-400 dark:ring-amber-500 shadow-xl shadow-amber-200/50 dark:shadow-amber-500/20 animate-pulse"
+                ? "relative z-10 !border-2 !border-amber-400 dark:!border-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.3)] animate-pulse"
                 : ""
             }`}
           >

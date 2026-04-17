@@ -94,8 +94,8 @@ export function AutomationPageClient() {
   const activeRules = automationRules.filter((rule) => rule.status === "active");
   const avgSuccessRate = automationRules.length
     ? (
-        automationRules.reduce((sum, rule) => sum + rule.successRate, 0) / automationRules.length
-      ).toFixed(1)
+      automationRules.reduce((sum, rule) => sum + rule.successRate, 0) / automationRules.length
+    ).toFixed(1)
     : "0.0";
   const estimatedHoursSaved = activeRules.length * 12;
   const errorProneRules = automationRules.filter((rule) => rule.successRate < 95).length;
@@ -151,17 +151,14 @@ export function AutomationPageClient() {
           <div className="flex items-center justify-between py-4">
             <div className="space-y-1">
               <h1 className="text-3xl font-bold text-slate-800 tracking-[-0.03em]">Automation Hub</h1>
-              <p className="text-sm text-slate-500 font-medium">
-                Manage trigger-based workflows powered by demo mock data.
-              </p>
             </div>
             <Button
               variant="primary"
-              className="h-11 px-6 gap-2 font-semibold shadow-md hover:shadow-lg transition-all"
+              className="h-11 px-3 sm:px-6 gap-2 font-semibold shadow-md hover:shadow-lg transition-all"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="h-4 w-4 stroke-[3]" />
-              <span>New Workflow</span>
+              <span className="hidden sm:inline">New Workflow</span>
             </Button>
           </div>
 
@@ -248,7 +245,7 @@ export function AutomationPageClient() {
                         </div>
                       </div>
 
-                      <div className="pt-6 mt-auto border-t border-slate-50 flex items-center justify-between">
+                      <div className="pt-6 mt-auto border-t border-slate-50 flex items-center justify-between gap-3">
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <History className="h-3 w-3" />
@@ -262,10 +259,11 @@ export function AutomationPageClient() {
                         </div>
                         <Button
                           variant="ghost"
-                          className="h-9 px-4 text-xs font-bold gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all"
+                          className="h-9 px-3 sm:px-4 text-xs font-bold gap-2 border border-slate-200 bg-white text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all shrink-0 whitespace-nowrap"
                           onClick={() => setSelectedRuleId(rule.id)}
                         >
-                          Configure Email
+                          <span className="hidden sm:inline">Configure Email</span>
+                          <span className="inline sm:hidden">Configure</span>
                           <ExternalLink className="h-3 w-3" />
                         </Button>
                       </div>

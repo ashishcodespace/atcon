@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Filter, Search } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
@@ -67,28 +68,6 @@ export function TasksPageClient({ filter }: { filter?: string }) {
           <h1 className="text-3xl font-bold text-slate-900 tracking-[-0.03em]">Tasks</h1>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3">
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search tasks, projects, assignees..."
-            className="w-full max-w-sm rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500"
-          />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">View</span>
-            <select
-              value={viewFilter}
-              onChange={(event) => setViewFilter(event.target.value as typeof viewFilter)}
-              className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none"
-            >
-              <option value="all">All</option>
-              <option value="my">My tasks</option>
-              <option value="blocked">Blocked</option>
-              <option value="overdue">Overdue</option>
-            </select>
-          </div>
-        </div>
-
         <StatStrip
           stats={[
             { label: "Open", value: String(openCount), hint: "Awaiting start" },
@@ -99,9 +78,50 @@ export function TasksPageClient({ filter }: { filter?: string }) {
           ]}
         />
 
+
+
         <Card className="border-none shadow-none bg-transparent">
-          <CardHeader className="px-0 pb-4">
+          <CardHeader className="px-0 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <CardTitle className="text-lg font-bold text-slate-800 tracking-tight">Active Task Operations</CardTitle>
+            <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search tasks, projects..."
+                  className="w-full pl-9 pr-3 rounded-lg border border-slate-200 dark:border-white/10 py-1.5 sm:py-2 text-sm outline-none focus:border-emerald-500 bg-white dark:bg-[#13151f] dark:text-slate-200"
+                />
+              </div>
+              <div className="relative shrink-0">
+                <div className="hidden sm:flex items-center gap-2">
+                  <span className="text-xs text-slate-500">View</span>
+                  <select
+                    value={viewFilter}
+                    onChange={(event) => setViewFilter(event.target.value as typeof viewFilter)}
+                    className="rounded-lg border border-slate-200 dark:border-white/10 bg-white px-2 py-2 text-xs text-slate-700 outline-none dark:bg-[#13151f] dark:text-slate-200"
+                  >
+                    <option value="all">All</option>
+                    <option value="my">My tasks</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+                <div className="flex sm:hidden p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-500 border border-slate-200 dark:border-white/10 bg-white dark:bg-[#13151f]">
+                  <Filter className="h-4 w-4" />
+                  <select
+                    value={viewFilter}
+                    onChange={(event) => setViewFilter(event.target.value as typeof viewFilter)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  >
+                    <option value="all">All</option>
+                    <option value="my">My tasks</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <DataTable
