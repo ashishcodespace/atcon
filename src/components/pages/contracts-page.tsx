@@ -219,32 +219,7 @@ export function ContractsPageClient() {
 
           <StatStrip stats={stats} />
 
-          <div className="flex flex-row items-center gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by title, client, or reference..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition-all"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
-            </div>
-            <div className="relative shrink-0">
-              <select
-                className="appearance-none cursor-pointer bg-white border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-sm text-slate-700 outline-none hover:bg-slate-50 focus:border-emerald-500 transition-colors shadow-sm"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as ContractStatus | "all")}
-              >
-                <option value="all">All Status</option>
-                <option value="signed">Signed</option>
-                <option value="sent">Sent</option>
-                <option value="draft">Draft</option>
-                <option value="expired">Expired</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            </div>
-          </div>
+
 
           <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
             {/* Table */}
