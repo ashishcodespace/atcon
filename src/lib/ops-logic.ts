@@ -1,5 +1,8 @@
 import { AppData, Invoice, Project, Task, User } from "@/types/domain";
 
+type MetricsData = Pick<AppData, "projects" | "invoices" | "tasks" | "users">;
+type InsightsData = Pick<AppData, "projects" | "invoices" | "tasks" | "users" | "timeLogs">;
+
 export const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en-GB", {
     style: "currency",
@@ -43,7 +46,7 @@ export const getUserLoad = (user: User, tasks: Task[]) => {
   };
 };
 
-export const getDashboardMetrics = (data: AppData) => {
+export const getDashboardMetrics = (data: MetricsData) => {
   const activeProjects = data.projects.filter((project) => project.status === "active").length;
   const pendingInvoices = data.invoices.filter(
     (invoice) => invoice.status === "sent" || invoice.status === "overdue",
@@ -69,7 +72,7 @@ export const getDashboardMetrics = (data: AppData) => {
   };
 };
 
-export const getOperationalInsights = (data: AppData) => {
+export const getOperationalInsights = (data: InsightsData) => {
   const atRiskProjects = data.projects
     .map((project) => ({
       ...project,

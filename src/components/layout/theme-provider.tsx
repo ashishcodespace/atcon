@@ -17,30 +17,30 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-
-  // On mount: read from localStorage or system preference
-  useEffect(() => {
-    const stored = localStorage.getItem("atcon-theme") as Theme | null;
-    if (stored === "dark" || stored === "light") {
-      applyTheme(stored);
-      setThemeState(stored);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial: Theme = prefersDark ? "dark" : "light";
-      applyTheme(initial);
-      setThemeState(initial);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") {
+      return "light";
     }
-  }, []);
+    const stored = localStorage.getItem("atcon-theme");
+    if (stored === "dark" || stored === "light") {
+      return stored;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
 
-  const applyTheme = (t: Theme) => {
+  function applyTheme(t: Theme) {
     const html = document.documentElement;
     if (t === "dark") {
       html.classList.add("dark");
     } else {
       html.classList.remove("dark");
     }
-  };
+  }
+
+  // Keep DOM class in sync with current theme.
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = (t: Theme) => {
     applyTheme(t);

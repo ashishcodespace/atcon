@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  CheckCircle2,
   ChevronDown,
   Download,
   ExternalLink,
@@ -11,73 +12,17 @@ import {
   Search,
   Send,
   X,
-  CheckCircle2
 } from "lucide-react";
-import clsx from "clsx";
+import { useShallow } from "zustand/react/shallow";
 
 import { StatStrip } from "@/components/shared/stat-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/ops-logic";
 import { useOpsStore } from "@/store/ops-store";
+import { Contract, ContractStatus } from "@/types/domain";
 
-type ContractStatus = "draft" | "sent" | "signed" | "expired";
-
-type Contract = {
-  id: string;
-  title: string;
-  clientId: string;
-  value: number;
-  status: ContractStatus;
-  effectiveDate: string;
-  expiryDate: string;
-  reference: string;
-};
-
-const INITIAL_CONTRACTS: Contract[] = [
-  {
-    id: "cnt-1",
-    title: "Master Service Agreement",
-    clientId: "c1",
-    value: 125000,
-    status: "signed",
-    effectiveDate: "2024-01-15",
-    expiryDate: "2025-01-14",
-    reference: "MSA-2024-001",
-  },
-  {
-    id: "cnt-2",
-    title: "Project Alpha Rollout Phase 2",
-    clientId: "c2",
-    value: 45000,
-    status: "sent",
-    effectiveDate: "2024-03-01",
-    expiryDate: "2024-09-01",
-    reference: "SOW-PA2-99",
-  },
-  {
-    id: "cnt-3",
-    title: "Consulting Framework Agreement",
-    clientId: "c1",
-    value: 80000,
-    status: "draft",
-    effectiveDate: "2024-04-10",
-    expiryDate: "2025-04-09",
-    reference: "CFA-BR-2024",
-  },
-  {
-    id: "cnt-4",
-    title: "Maintenance & Support v2",
-    clientId: "c3",
-    value: 12000,
-    status: "expired",
-    effectiveDate: "2023-01-01",
-    expiryDate: "2023-12-31",
-    reference: "SUP-MNT-23",
-  },
-];
-
-type NewContractForm = {
+type ContractForm = {
   title: string;
   clientId: string;
   value: string;
@@ -86,7 +31,7 @@ type NewContractForm = {
   reference: string;
 };
 
-const EMPTY_FORM: NewContractForm = {
+const EMPTY_FORM: ContractForm = {
   title: "",
   clientId: "",
   value: "",
@@ -96,86 +41,166 @@ const EMPTY_FORM: NewContractForm = {
 };
 
 export function ContractsPageClient() {
-  const { clients } = useOpsStore();
-  const [contracts, setContracts] = useState<Contract[]>(INITIAL_CONTRACTS);
+  const { clients, contracts, addContract, updateContract, updateContractStatus } = useOpsStore(
+    useShallow((state) => ({
+      clients: state.clients,
+      contracts: state.contracts,
+      addContract: state.addContract,
+      updateContract: state.updateContract,
+      updateContractStatus: state.updateContractStatus,
+    })),
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ContractStatus | "all">("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [form, setForm] = useState<NewContractForm>(EMPTY_FORM);
+  const [form, setForm] = useState<ContractForm>(EMPTY_FORM);
   const [submitted, setSubmitted] = useState(false);
+  const [editingContractId, setEditingContractId] = useState<string | null>(null);
+  const [previewContractId, setPreviewContractId] = useState<string | null>(null);
 
   const filteredContracts = useMemo(() => {
     return contracts.filter((contract) => {
+      const clientName = clients.find((client) => client.id === contract.clientId)?.name ?? "";
       const matchesSearch =
         contract.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        contract.reference.toLowerCase().includes(searchQuery.toLowerCase());
+        contract.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        clientName.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === "all" || contract.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [contracts, searchQuery, statusFilter]);
+  }, [contracts, clients, searchQuery, statusFilter]);
 
   const stats = useMemo(() => {
-    const totalValue = contracts.reduce((sum, c) => sum + (c.status === "signed" ? c.value : 0), 0);
-    const active = contracts.filter((c) => c.status === "signed").length;
-    const pending = contracts.filter((c) => c.status === "sent").length;
+    const totalValue = contracts.reduce(
+      (sum, contract) => sum + (contract.status === "signed" ? contract.value : 0),
+      0,
+    );
+    const active = contracts.filter((contract) => contract.status === "signed").length;
+    const pending = contracts.filter((contract) => contract.status === "sent").length;
+    const ninetyDaysFromNow = new Date();
+    ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
     const expiringSoon = contracts.filter(
-      (c) => c.status === "signed" && new Date(c.expiryDate) < new Date("2024-12-31")
+      (contract) =>
+        contract.status === "signed" && new Date(`${contract.expiryDate}T00:00:00`) <= ninetyDaysFromNow,
     ).length;
     return [
       { label: "Active Agreements", value: String(active), hint: "Legally binding" },
       { label: "Pipeline Value", value: formatCurrency(totalValue), hint: "Signed value" },
-      { label: "Pending Signature", value: String(pending), valueTone: "warning" as const, hint: "Out for review" },
-      { label: "Expiring (90d)", value: String(expiringSoon), valueTone: "danger" as const, hint: "Requires attention" },
+      {
+        label: "Pending Signature",
+        value: String(pending),
+        valueTone: "warning" as const,
+        hint: "Out for review",
+      },
+      {
+        label: "Expiring (90d)",
+        value: String(expiringSoon),
+        valueTone: "danger" as const,
+        hint: "Requires attention",
+      },
     ];
   }, [contracts]);
 
   const getStatusBadge = (status: ContractStatus) => {
     switch (status) {
-      case "signed": return <Badge label="Signed" tone="success" />;
-      case "sent": return <Badge label="Sent" tone="warning" />;
-      case "draft": return <Badge label="Draft" tone="neutral" />;
-      case "expired": return <Badge label="Expired" tone="danger" />;
+      case "signed":
+        return <Badge label="Signed" tone="success" />;
+      case "sent":
+        return <Badge label="Sent" tone="warning" />;
+      case "draft":
+        return <Badge label="Draft" tone="neutral" />;
+      case "expired":
+        return <Badge label="Expired" tone="danger" />;
     }
   };
 
   const isFormValid = form.title.trim() && form.clientId && form.value && form.effectiveDate && form.expiryDate;
 
-  const handleCreate = () => {
+  const closeModal = () => {
+    setShowCreateModal(false);
+    setForm(EMPTY_FORM);
+    setSubmitted(false);
+    setEditingContractId(null);
+  };
+
+  const openCreateModal = () => {
+    setEditingContractId(null);
+    setForm(EMPTY_FORM);
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (contract: Contract) => {
+    setEditingContractId(contract.id);
+    setForm({
+      title: contract.title,
+      clientId: contract.clientId,
+      value: String(contract.value),
+      effectiveDate: contract.effectiveDate,
+      expiryDate: contract.expiryDate,
+      reference: contract.reference,
+    });
+    setShowCreateModal(true);
+  };
+
+  const handleSaveContract = () => {
     if (!isFormValid) return;
-    const newContract: Contract = {
-      id: `cnt-${Date.now()}`,
+
+    const payload = {
       title: form.title.trim(),
       clientId: form.clientId,
-      value: parseFloat(form.value) || 0,
-      status: "draft",
+      value: Number(form.value) || 0,
+      status: "draft" as const,
       effectiveDate: form.effectiveDate,
       expiryDate: form.expiryDate,
-      reference: form.reference.trim() || `REF-${Date.now()}`,
+      reference:
+        form.reference.trim() || `${form.title.trim().slice(0, 3).toUpperCase()}-${new Date().getFullYear()}`,
     };
-    setContracts((prev) => [newContract, ...prev]);
+
+    if (editingContractId) {
+      updateContract(editingContractId, payload);
+    } else {
+      addContract(payload);
+    }
+
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);
       setShowCreateModal(false);
       setForm(EMPTY_FORM);
-    }, 1400);
+      setEditingContractId(null);
+    }, 900);
   };
 
-  const closeModal = () => {
-    setShowCreateModal(false);
-    setForm(EMPTY_FORM);
-    setSubmitted(false);
+  const downloadContractSummary = (contract: Contract) => {
+    const clientName = clients.find((client) => client.id === contract.clientId)?.name ?? "Unknown client";
+    const content = [
+      `Contract: ${contract.title}`,
+      `Reference: ${contract.reference}`,
+      `Client: ${clientName}`,
+      `Value: ${formatCurrency(contract.value)}`,
+      `Status: ${contract.status}`,
+      `Effective Date: ${contract.effectiveDate}`,
+      `Expiry Date: ${contract.expiryDate}`,
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${contract.reference || contract.id}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  // Shared input/select classes matching the project modal
-  const inputCls = "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500";
-  const selectCls = "appearance-none mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm outline-none focus:border-emerald-500 shadow-sm";
+  const previewContract = contracts.find((contract) => contract.id === previewContractId);
+  const inputCls =
+    "mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500";
+  const selectCls =
+    "appearance-none mt-1 w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-sm outline-none focus:border-emerald-500 shadow-sm";
 
   return (
     <>
       <section className="h-full min-h-0 overflow-y-auto pr-1">
         <div className="flex flex-col gap-6 pb-6">
-          {/* Header */}
           <div className="flex items-center justify-between py-4">
             <div className="space-y-1">
               <h1 className="text-3xl font-extrabold text-slate-800 tracking-[-0.03em]">Contracts</h1>
@@ -183,7 +208,7 @@ export function ContractsPageClient() {
             <Button
               variant="primary"
               className="gap-2 px-3 sm:px-6 h-11 font-bold shadow-md hover:shadow-lg transition-all cursor-pointer"
-              onClick={() => setShowCreateModal(true)}
+              onClick={openCreateModal}
             >
               <Plus className="h-4 w-4 stroke-[3]" />
               <span className="hidden sm:inline">New Contract</span>
@@ -192,23 +217,22 @@ export function ContractsPageClient() {
 
           <StatStrip stats={stats} />
 
-          {/* Search & Filter bar */}
           <div className="flex flex-row items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by title or reference..."
+                placeholder="Search by title, client, or reference..."
                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 transition-all"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(event) => setSearchQuery(event.target.value)}
               />
             </div>
             <div className="relative shrink-0">
               <select
                 className="appearance-none cursor-pointer bg-white border border-slate-200 rounded-xl pl-3 pr-9 py-2.5 text-sm text-slate-700 outline-none hover:bg-slate-50 focus:border-emerald-500 transition-colors shadow-sm"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as ContractStatus | "all")}
+                onChange={(event) => setStatusFilter(event.target.value as ContractStatus | "all")}
               >
                 <option value="all">All Status</option>
                 <option value="signed">Signed</option>
@@ -220,7 +244,6 @@ export function ContractsPageClient() {
             </div>
           </div>
 
-          {/* Table */}
           <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-[700px] w-full text-left border-collapse">
@@ -236,13 +259,15 @@ export function ContractsPageClient() {
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                   {filteredContracts.map((contract) => {
-                    const clientName = clients.find((c) => c.id === contract.clientId)?.name || "Unknown";
+                    const clientName = clients.find((client) => client.id === contract.clientId)?.name ?? "Unknown";
                     return (
                       <tr key={contract.id} className="group hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-5">
                           <div className="flex flex-col">
                             <span className="font-bold text-slate-800 tracking-tight">{contract.title}</span>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase mt-0.5">{contract.reference}</span>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase mt-0.5">
+                              {contract.reference}
+                            </span>
                           </div>
                         </td>
                         <td className="px-6 py-5">
@@ -254,25 +279,48 @@ export function ContractsPageClient() {
                         <td className="px-6 py-5">{getStatusBadge(contract.status)}</td>
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                            <span>{new Date(contract.effectiveDate).toLocaleDateString()}</span>
+                            <span>{new Date(`${contract.effectiveDate}T00:00:00`).toLocaleDateString()}</span>
                             <span className="text-slate-300">→</span>
-                            <span>{new Date(contract.expiryDate).toLocaleDateString()}</span>
+                            <span>{new Date(`${contract.expiryDate}T00:00:00`).toLocaleDateString()}</span>
                           </div>
                         </td>
                         <td className="px-6 py-5 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <button className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all" title="View Document">
+                            <button
+                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                              title="View Document"
+                              onClick={() => setPreviewContractId(contract.id)}
+                            >
                               <ExternalLink className="h-4 w-4" />
                             </button>
-                            <button className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all" title="Edit">
+                            <button
+                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                              title="Edit"
+                              onClick={() => openEditModal(contract)}
+                            >
                               <FileEdit className="h-4 w-4" />
                             </button>
-                            {contract.status === "draft" && (
-                              <button className="p-2 cursor-pointer text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Send for Signature">
+                            {contract.status === "draft" ? (
+                              <button
+                                className="p-2 cursor-pointer text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                                title="Send for Signature"
+                                onClick={() => updateContractStatus(contract.id, "sent")}
+                              >
                                 <Send className="h-4 w-4" />
                               </button>
-                            )}
-                            <button className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all" title="Download PDF">
+                            ) : contract.status === "sent" ? (
+                              <button
+                                className="px-2 py-1 text-[11px] rounded-lg border border-emerald-100 bg-emerald-50 text-emerald-700 font-semibold hover:bg-emerald-100 transition-colors"
+                                onClick={() => updateContractStatus(contract.id, "signed")}
+                              >
+                                Mark Signed
+                              </button>
+                            ) : null}
+                            <button
+                              className="p-2 cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+                              title="Download Summary"
+                              onClick={() => downloadContractSummary(contract)}
+                            >
                               <Download className="h-4 w-4" />
                             </button>
                           </div>
@@ -283,32 +331,32 @@ export function ContractsPageClient() {
                 </tbody>
               </table>
             </div>
-            {filteredContracts.length === 0 && (
+            {filteredContracts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
                 <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
                   <FileText className="h-8 w-8 text-slate-300" />
                 </div>
                 <h3 className="font-bold text-slate-800">No contracts found</h3>
                 <p className="text-sm text-slate-500 mt-1 max-w-[240px]">
-                  We couldn&apos;t find any agreements matching your current filters.
+                  We could not find agreements matching your current filters.
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </section>
 
-      {/* New Contract Modal */}
-      {showCreateModal && (
+      {showCreateModal ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closeModal}
           />
           <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-              <h2 className="text-xl font-bold text-slate-800">New Contract</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                {editingContractId ? "Edit Contract" : "New Contract"}
+              </h2>
               <button
                 type="button"
                 onClick={closeModal}
@@ -324,14 +372,19 @@ export function ContractsPageClient() {
                   <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-slate-800">Contract Created!</p>
-                  <p className="text-sm text-slate-400 mt-0.5">Draft saved successfully</p>
+                  <p className="font-bold text-slate-800">
+                    {editingContractId ? "Contract Updated!" : "Contract Created!"}
+                  </p>
+                  <p className="text-sm text-slate-400 mt-0.5">Changes saved in demo state</p>
                 </div>
               </div>
             ) : (
               <form
                 className="flex flex-col gap-4 px-6 py-5"
-                onSubmit={(e) => { e.preventDefault(); handleCreate(); }}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  handleSaveContract();
+                }}
               >
                 <label className="block text-sm text-slate-600">
                   Contract Title
@@ -340,7 +393,7 @@ export function ContractsPageClient() {
                     placeholder="e.g. Master Service Agreement"
                     className={inputCls}
                     value={form.title}
-                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                     required
                   />
                 </label>
@@ -352,25 +405,27 @@ export function ContractsPageClient() {
                       <select
                         className={selectCls}
                         value={form.clientId}
-                        onChange={(e) => setForm((f) => ({ ...f, clientId: e.target.value }))}
+                        onChange={(event) => setForm((prev) => ({ ...prev, clientId: event.target.value }))}
                         required
                       >
                         <option value="">Select client…</option>
-                        {clients.map((c) => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
+                        {clients.map((client) => (
+                          <option key={client.id} value={client.id}>
+                            {client.name}
+                          </option>
                         ))}
                       </select>
                       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     </div>
                   </label>
                   <label className="block text-sm text-slate-600">
-                    Value ($)
+                    Value (€)
                     <input
                       type="number"
                       placeholder="e.g. 50000"
                       className={inputCls}
                       value={form.value}
-                      onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+                      onChange={(event) => setForm((prev) => ({ ...prev, value: event.target.value }))}
                       required
                     />
                   </label>
@@ -383,7 +438,7 @@ export function ContractsPageClient() {
                       type="date"
                       className={inputCls}
                       value={form.effectiveDate}
-                      onChange={(e) => setForm((f) => ({ ...f, effectiveDate: e.target.value }))}
+                      onChange={(event) => setForm((prev) => ({ ...prev, effectiveDate: event.target.value }))}
                       required
                     />
                   </label>
@@ -393,21 +448,20 @@ export function ContractsPageClient() {
                       type="date"
                       className={inputCls}
                       value={form.expiryDate}
-                      onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                      onChange={(event) => setForm((prev) => ({ ...prev, expiryDate: event.target.value }))}
                       required
                     />
                   </label>
                 </div>
 
                 <label className="block text-sm text-slate-600">
-                  Reference ID{" "}
-                  <span className="text-slate-400 font-normal">(optional)</span>
+                  Reference ID <span className="text-slate-400 font-normal">(optional)</span>
                   <input
                     type="text"
-                    placeholder="e.g. MSA-2025-001"
+                    placeholder="e.g. MSA-2026-001"
                     className={inputCls}
                     value={form.reference}
-                    onChange={(e) => setForm((f) => ({ ...f, reference: e.target.value }))}
+                    onChange={(event) => setForm((prev) => ({ ...prev, reference: event.target.value }))}
                   />
                 </label>
 
@@ -421,14 +475,55 @@ export function ContractsPageClient() {
                     className="flex-[2] h-11 shadow-lg disabled:opacity-30 disabled:grayscale transition-all cursor-pointer"
                     disabled={!isFormValid}
                   >
-                    Save as Draft
+                    {editingContractId ? "Save Changes" : "Save as Draft"}
                   </Button>
                 </div>
               </form>
             )}
           </div>
         </div>
-      )}
+      ) : null}
+
+      {previewContract ? (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
+            onClick={() => setPreviewContractId(null)}
+          />
+          <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">{previewContract.title}</h3>
+                <p className="text-xs text-slate-500">{previewContract.reference}</p>
+              </div>
+              <button
+                type="button"
+                className="rounded p-1 text-slate-400 hover:bg-slate-100"
+                onClick={() => setPreviewContractId(null)}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm text-slate-600">
+              <p>
+                <span className="font-semibold text-slate-800">Client:</span>{" "}
+                {clients.find((client) => client.id === previewContract.clientId)?.name ?? "Unknown"}
+              </p>
+              <p>
+                <span className="font-semibold text-slate-800">Contract Value:</span>{" "}
+                {formatCurrency(previewContract.value)}
+              </p>
+              <p>
+                <span className="font-semibold text-slate-800">Validity:</span>{" "}
+                {previewContract.effectiveDate} to {previewContract.expiryDate}
+              </p>
+              <p className="text-xs text-slate-500">
+                This frontend preview represents the active mock contract terms for demo walkthroughs.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

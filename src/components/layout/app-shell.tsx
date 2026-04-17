@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, ClipboardList, FolderKanban, LayoutDashboard, Search, Users, Wallet, Menu, User as UserIcon, LogOut, X, Clock, Zap, FileText, Sun, Moon } from "lucide-react";
+import { Bell, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, ClipboardList, FolderKanban, LayoutDashboard, Search, Users, Wallet, Menu, User as UserIcon, LogOut, X, Clock, Zap, FileText, Sun, Moon, Headset, Bot, SendHorizontal, MessageCircle } from "lucide-react";
 import clsx from "clsx";
-import { ReactNode, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import LogoImage from "@/assets/logo.png";
 import LogoWhiteImage from "@/assets/logo-white.png";
 import { useOpsStore } from "@/store/ops-store";
@@ -22,7 +22,14 @@ const navigation = [
   { label: "Invoices", href: "/invoices", icon: Wallet },
   { label: "Reports", href: "/reports", icon: ChartNoAxesCombined },
   { label: "Automation", href: "/automation", icon: Zap },
+  { label: "Support", href: "/support", icon: Headset },
 ];
+const assistantQuickPrompts = [
+  "I have a billing issue",
+  "Need help with project status",
+  "How do I raise urgent support?",
+];
+const assistantAutoOpenStorageKey = "atcon-ai-assistant-demo-opened";
 
 type AppShellProps = {
   children: ReactNode;
@@ -42,12 +49,30 @@ export function AppShell({ children }: AppShellProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLogoutMessage, setShowLogoutMessage] = useState(false);
-  const { clients, projects, tasks, invoices } = useOpsStore(
+  const [assistantOpen, setAssistantOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem(assistantAutoOpenStorageKey);
+  });
+  const [assistantInput, setAssistantInput] = useState("");
+  const [assistantTyping, setAssistantTyping] = useState(false);
+  const [assistantMessages, setAssistantMessages] = useState<
+    Array<{ id: string; role: "assistant" | "user"; text: string }>
+  >([
+    {
+      id: "assistant-welcome",
+      role: "assistant",
+      text: "Hi, how can I help you today?",
+    },
+  ]);
+  const assistantReplyTimerRef = useRef<number | null>(null);
+  const assistantMessageCounterRef = useRef(0);
+  const { clients, projects, tasks, invoices, supportTickets } = useOpsStore(
     useShallow((state) => ({
       clients: state.clients,
       projects: state.projects,
       tasks: state.tasks,
       invoices: state.invoices,
+      supportTickets: state.supportTickets,
     })),
   );
 
@@ -64,13 +89,19 @@ export function AppShell({ children }: AppShellProps) {
       ...tasks
         .filter((task) => task.title.toLowerCase().includes(query))
         .map((task) => ({ id: `task-${task.id}`, label: task.title, hint: "Task", href: `/tasks` })),
+      ...supportTickets
+        .filter((ticket) => ticket.title.toLowerCase().includes(query))
+        .map((ticket) => ({ id: `support-${ticket.id}`, label: ticket.title, hint: "Support Ticket", href: `/support` })),
     ];
     return results.slice(0, 6);
-  }, [clients, projects, tasks, globalSearch]);
+  }, [clients, projects, tasks, supportTickets, globalSearch]);
 
   const notifications = useMemo(() => {
     const overdueInvoices = invoices.filter((invoice) => invoice.status === "overdue");
     const blockedTasks = tasks.filter((task) => task.status === "blocked");
+    const urgentTickets = supportTickets.filter(
+      (ticket) => ticket.priority === "urgent" && (ticket.status === "open" || ticket.status === "in_progress"),
+    );
     return [
       ...overdueInvoices.map((invoice) => ({
         id: `overdue-${invoice.id}`,
@@ -82,8 +113,54 @@ export function AppShell({ children }: AppShellProps) {
         message: `Blocked task: ${task.title}`,
         href: "/tasks?filter=blocked",
       })),
+      ...urgentTickets.map((ticket) => ({
+        id: `support-${ticket.id}`,
+        message: `Urgent support: ${ticket.title}`,
+        href: "/support",
+      })),
     ].slice(0, 6);
-  }, [invoices, tasks]);
+  }, [invoices, tasks, supportTickets]);
+
+  useEffect(() => {
+    return () => {
+      if (assistantReplyTimerRef.current) {
+        window.clearTimeout(assistantReplyTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !assistantOpen) return;
+    localStorage.setItem(assistantAutoOpenStorageKey, "true");
+  }, [assistantOpen]);
+
+  const queueAssistantReply = () => {
+    setAssistantTyping(true);
+    assistantReplyTimerRef.current = window.setTimeout(() => {
+      const replySeed = assistantMessageCounterRef.current++;
+      setAssistantMessages((prev) => [
+        ...prev,
+        { id: `assistant-${replySeed}`, role: "assistant", text: "We will get back to you soon." },
+      ]);
+      setAssistantTyping(false);
+      assistantReplyTimerRef.current = null;
+    }, 850);
+  };
+
+  const submitAssistantMessage = (value: string) => {
+    const message = value.trim();
+    if (!message) return;
+    const seed = assistantMessageCounterRef.current++;
+    setAssistantMessages((prev) => [...prev, { id: `user-${seed}`, role: "user", text: message }]);
+    setAssistantInput("");
+    setAssistantOpen(true);
+    queueAssistantReply();
+  };
+
+  const sendAssistantMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitAssistantMessage(assistantInput);
+  };
 
   return (
     <div className="flex h-screen bg-transparent text-slate-800 dark:text-slate-100 overflow-hidden">
@@ -368,6 +445,98 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         ) : null}
         <main className="min-h-0 flex-1 overflow-auto bg-slate-50/30 dark:bg-[#0f1117] p-4 md:p-6">{children}</main>
+
+        <div className="fixed bottom-5 right-5 z-[130] flex flex-col items-end gap-3">
+          {assistantOpen ? (
+            <div className="w-[320px] overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#161a24] shadow-2xl">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                    <Bot className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Assistant</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">How can I help you?</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-white/10"
+                  onClick={() => setAssistantOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="max-h-72 space-y-2 overflow-y-auto px-3 py-3">
+                {assistantMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={clsx(
+                      "max-w-[90%] rounded-xl px-3 py-2 text-sm",
+                      message.role === "user"
+                        ? "ml-auto bg-slate-900 text-white dark:bg-emerald-600"
+                        : "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200",
+                    )}
+                  >
+                    {message.text}
+                  </div>
+                ))}
+                {assistantTyping ? (
+                  <div className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-slate-600 dark:bg-white/10 dark:text-slate-200">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-slate-400"></span>
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-slate-400 [animation-delay:150ms]"></span>
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-slate-400 [animation-delay:300ms]"></span>
+                    <span className="ml-1 text-xs">Assistant is typing...</span>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 border-t border-slate-100 px-3 py-2 dark:border-white/10">
+                {assistantQuickPrompts.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
+                    onClick={() => submitAssistantMessage(prompt)}
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+
+              <form
+                className="flex items-center gap-2 border-t border-slate-100 dark:border-white/10 p-3"
+                onSubmit={sendAssistantMessage}
+              >
+                <input
+                  type="text"
+                  value={assistantInput}
+                  onChange={(event) => setAssistantInput(event.target.value)}
+                  placeholder="Type your message..."
+                  className="h-9 w-full rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121620] px-3 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-emerald-500"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white transition-colors hover:bg-emerald-700"
+                  aria-label="Send message"
+                  disabled={assistantTyping}
+                >
+                  <SendHorizontal className="h-4 w-4" />
+                </button>
+              </form>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setAssistantOpen((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-emerald-700"
+          >
+            <MessageCircle className="h-4 w-4" />
+            <span>How can I help you?</span>
+          </button>
+        </div>
       </div>
     </div>
   );
